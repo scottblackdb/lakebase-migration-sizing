@@ -1,0 +1,7 @@
+# Dependencies
+app/frontend/node_modules/
+
+# Build output
+app/frontend/build/
+app/frontend/dist/
+

@@ -1,8 +1,7 @@
 export interface AnalysisSummary {
   analysis_id: string;
+  group_name: string | null;
   server_name: string;
-  subscription_id: string;
-  resource_group: string;
   granularity: string;
   start_time: string;
   end_time: string;

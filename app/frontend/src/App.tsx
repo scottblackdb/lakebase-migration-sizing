@@ -1,8 +1,10 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { AppBar, Toolbar, Typography, Container, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography, Container, Box, CircularProgress } from "@mui/material";
 import StorageIcon from "@mui/icons-material/Storage";
-import AnalysisList from "./components/AnalysisList";
-import AnalysisDetail from "./components/AnalysisDetail";
+
+const AnalysisList = lazy(() => import("./components/AnalysisList"));
+const AnalysisDetail = lazy(() => import("./components/AnalysisDetail"));
 
 export default function App() {
   const navigate = useNavigate();
@@ -20,10 +22,18 @@ export default function App() {
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Routes>
-          <Route path="/" element={<AnalysisList />} />
-          <Route path="/analysis/:id" element={<AnalysisDetail />} />
-        </Routes>
+        <Suspense
+          fallback={
+            <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+              <CircularProgress />
+            </Box>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<AnalysisList />} />
+            <Route path="/analysis/:id" element={<AnalysisDetail />} />
+          </Routes>
+        </Suspense>
       </Container>
     </Box>
   );

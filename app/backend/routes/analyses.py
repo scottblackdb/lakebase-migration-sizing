@@ -14,6 +14,17 @@ def list_analyses():
     return rows
 
 
+@router.get("/analyses/groups", response_model=list[str])
+def list_group_names():
+    schema = settings.full_schema
+    rows = fetchall(
+        f"SELECT DISTINCT group_name FROM {schema}.analyses "
+        f"WHERE group_name IS NOT NULL AND TRIM(group_name) <> '' "
+        f"ORDER BY group_name"
+    )
+    return [row["group_name"] for row in rows]
+
+
 @router.get("/analyses/{analysis_id}", response_model=AnalysisSummary)
 def get_analysis(analysis_id: str):
     schema = settings.full_schema

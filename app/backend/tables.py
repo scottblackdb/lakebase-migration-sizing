@@ -1,3 +1,7 @@
+"""
+Table definitions for Lakebase Migration Sizing.
+Canonical DDL (for reference / manual runs): see schema.sql in this directory.
+"""
 from backend.config import settings
 from backend.db import execute
 
@@ -10,6 +14,8 @@ METRIC_NAMES = [
     "read_iops",
     "write_iops",
     "xact_commit",
+    "blks_hit",
+    "blks_read",
 ]
 
 DISPLAY_NAMES = {
@@ -21,6 +27,8 @@ DISPLAY_NAMES = {
     "read_iops": "Disk Read IOPS",
     "write_iops": "Disk Write IOPS",
     "xact_commit": "Transactions Committed Per Second",
+    "blks_hit": "Buffer Cache Blocks Hit",
+    "blks_read": "Disk Blocks Read",
 }
 
 
@@ -30,9 +38,8 @@ def ensure_tables() -> None:
     execute(f"""
         CREATE TABLE IF NOT EXISTS {schema}.analyses (
             analysis_id STRING,
+            group_name STRING,
             server_name STRING,
-            subscription_id STRING,
-            resource_group STRING,
             granularity STRING,
             start_time STRING,
             end_time STRING,

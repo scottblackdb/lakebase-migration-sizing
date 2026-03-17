@@ -60,10 +60,10 @@ export default function AnalysisList() {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 700 }}>Server Name</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Group Name</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Region</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>vCores</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Date Range</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Granularity</TableCell>
                 <TableCell sx={{ fontWeight: 700 }}>Created</TableCell>
                 <TableCell />
               </TableRow>
@@ -81,6 +81,7 @@ export default function AnalysisList() {
                       {a.server_name}
                     </Typography>
                   </TableCell>
+                  <TableCell>{a.group_name ?? "—"}</TableCell>
                   <TableCell>
                     {a.region && (
                       <Chip label={a.region} size="small" variant="outlined" />
@@ -90,7 +91,6 @@ export default function AnalysisList() {
                   <TableCell>
                     {a.start_time.slice(0, 10)} — {a.end_time.slice(0, 10)}
                   </TableCell>
-                  <TableCell>{a.granularity}</TableCell>
                   <TableCell>{a.created_at.slice(0, 10)}</TableCell>
                   <TableCell>
                     <Tooltip title="View details">

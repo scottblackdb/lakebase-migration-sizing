@@ -3,9 +3,8 @@ from pydantic import BaseModel
 
 class AnalysisSummary(BaseModel):
     analysis_id: str
+    group_name: str | None = None
     server_name: str
-    subscription_id: str
-    resource_group: str
     granularity: str
     start_time: str
     end_time: str

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Paper,
   Button,
@@ -6,9 +6,11 @@ import {
   Alert,
   CircularProgress,
   Stack,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { uploadFile } from "../api";
+import { fetchGroupNames, uploadFile } from "../api";
 
 interface Props {
   onUploaded: () => void;
@@ -20,7 +22,15 @@ export default function UploadForm({ onUploaded }: Props) {
     null
   );
   const [fileName, setFileName] = useState<string>("");
+  const [groupName, setGroupName] = useState("");
+  const [groupOptions, setGroupOptions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchGroupNames()
+      .then(setGroupOptions)
+      .catch(() => setGroupOptions([]));
+  }, []);
 
   const handleFileChange = () => {
     const file = inputRef.current?.files?.[0];
@@ -31,18 +41,26 @@ export default function UploadForm({ onUploaded }: Props) {
   const handleSubmit = async () => {
     const file = inputRef.current?.files?.[0];
     if (!file) return;
+    if (!groupName.trim()) {
+      setStatus({ msg: "Please select or enter a group name.", ok: false });
+      return;
+    }
 
     setUploading(true);
     setStatus(null);
 
     try {
-      const result = await uploadFile(file);
+      const normalizedGroup = groupName.trim();
+      const result = await uploadFile(file, normalizedGroup);
       setStatus({
-        msg: `Uploaded "${result.server_name}" — ${result.metrics_loaded.length} metrics loaded`,
+        msg: `Uploaded "${result.server_name}" to "${normalizedGroup}" — ${result.metrics_loaded.length} metrics loaded`,
         ok: true,
       });
       if (inputRef.current) inputRef.current.value = "";
       setFileName("");
+      if (!groupOptions.includes(normalizedGroup)) {
+        setGroupOptions((prev) => [...prev, normalizedGroup].sort());
+      }
       onUploaded();
     } catch (e) {
       setStatus({ msg: String(e), ok: false });
@@ -56,7 +74,28 @@ export default function UploadForm({ onUploaded }: Props) {
       <Typography variant="subtitle1" fontWeight={600} gutterBottom>
         Upload Metrics JSON
       </Typography>
-      <Stack direction="row" spacing={2} alignItems="center">
+      <Stack
+        direction="row"
+        spacing={2}
+        alignItems="center"
+        sx={{ flexWrap: "wrap" }}
+      >
+        <Autocomplete
+          freeSolo
+          options={groupOptions}
+          value={groupName}
+          onChange={(_, value) => setGroupName(value ?? "")}
+          onInputChange={(_, value) => setGroupName(value)}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Group Name"
+              placeholder="Select existing or enter new"
+              size="small"
+            />
+          )}
+          sx={{ width: "20ch", minWidth: "20ch" }}
+        />
         <Button
           variant="outlined"
           component="label"
@@ -74,7 +113,7 @@ export default function UploadForm({ onUploaded }: Props) {
         <Button
           variant="contained"
           onClick={handleSubmit}
-          disabled={uploading || !fileName}
+          disabled={uploading || !fileName || !groupName.trim()}
           startIcon={
             uploading ? <CircularProgress size={18} color="inherit" /> : null
           }

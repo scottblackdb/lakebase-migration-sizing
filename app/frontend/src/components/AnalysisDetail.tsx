@@ -30,6 +30,7 @@ import { fetchAnalysis, fetchAllMetrics, generateAiAnalysis } from "../api";
 import type { AnalysisSummary, MetricResponse } from "../types";
 import MetricChart from "./MetricChart";
 import CpuCapacityChart from "./CpuCapacityChart";
+import CacheHitRatioChart from "./CacheHitRatioChart";
 
 interface OverviewCardProps {
   icon: React.ReactNode;
@@ -138,6 +139,13 @@ export default function AnalysisDetail() {
   });
 
   const hasAiAnalysis = !!analysis.ai_analysis;
+  const blocksHitMetric = metrics.find((m) => m.metric_name === "blks_hit");
+  const blocksReadMetric = metrics.find((m) => m.metric_name === "blks_read");
+  const hasCacheMetricDefinitions = !!blocksHitMetric && !!blocksReadMetric;
+  const hasCacheHitMetrics =
+    hasCacheMetricDefinitions &&
+    blocksHitMetric.data_points > 0 &&
+    blocksReadMetric.data_points > 0;
 
   return (
     <>
@@ -156,7 +164,7 @@ export default function AnalysisDetail() {
             onClick={() => setModalOpen(true)}
             sx={{ borderColor: "#00A972", color: "#00A972", "&:hover": { borderColor: "#00875C", backgroundColor: "rgba(0,169,114,0.04)" } }}
           >
-            View Migration Analysis
+            View Analysis
           </Button>
         ) : (
           <Button
@@ -202,9 +210,33 @@ export default function AnalysisDetail() {
         ) : null;
       })()}
 
+      {hasCacheHitMetrics && blocksHitMetric && blocksReadMetric && (
+        <CacheHitRatioChart
+          blocksHitMetric={blocksHitMetric}
+          blocksReadMetric={blocksReadMetric}
+        />
+      )}
+
+      {hasCacheMetricDefinitions && !hasCacheHitMetrics && (
+        <Paper sx={{ p: 2.5, mb: 3 }}>
+          <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+            Database Cache Hit Ratio
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            This analysis does not include cache block metrics (`blks_hit`,
+            `blks_read`) with data points, so cache hit ratio cannot be shown.
+          </Typography>
+        </Paper>
+      )}
+
       <Grid container spacing={2.5}>
         {metrics
-          .filter((m) => m.data_points > 0)
+          .filter(
+            (m) =>
+              m.data_points > 0 &&
+              m.metric_name !== "blks_hit" &&
+              m.metric_name !== "blks_read"
+          )
           .map((m) => (
             <Grid key={m.metric_name} size={{ xs: 12, md: 6 }}>
               <MetricChart metric={m} />

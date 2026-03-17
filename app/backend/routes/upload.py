@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, Form, HTTPException, UploadFile
 
 from backend.config import settings
 from backend.db import execute
@@ -50,7 +50,7 @@ def _insert_metric_batch(
 
 
 @router.post("/upload", response_model=UploadResponse)
-async def upload_metrics(file: UploadFile):
+async def upload_metrics(file: UploadFile, group_name: str = Form("")):
     if not file.filename or not file.filename.endswith(".json"):
         raise HTTPException(status_code=400, detail="File must be a .json file")
 
@@ -60,7 +60,7 @@ async def upload_metrics(file: UploadFile):
     except (json.JSONDecodeError, UnicodeDecodeError) as e:
         raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
 
-    required_keys = {"server_name", "subscription_id", "resource_group", "metrics"}
+    required_keys = {"server_name", "metrics"}
     if not required_keys.issubset(data.keys()):
         missing = required_keys - data.keys()
         raise HTTPException(status_code=400, detail=f"Missing keys: {missing}")
@@ -70,8 +70,6 @@ async def upload_metrics(file: UploadFile):
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     server_name = _escape(data["server_name"])
-    subscription_id = _escape(data.get("subscription_id", ""))
-    resource_group = _escape(data.get("resource_group", ""))
     granularity = _escape(data.get("granularity", ""))
     start_time = _escape(data.get("start_time", ""))
     end_time = _escape(data.get("end_time", ""))
@@ -83,13 +81,15 @@ async def upload_metrics(file: UploadFile):
     vcores = server_config.get("vcores")
     storage_size_gb = server_config.get("storage_size_gb")
     region = _escape(str(server_config.get("region") or ""))
+    normalized_group = group_name.strip()
+    group_name_sql = f"'{_escape(normalized_group)}'" if normalized_group else "NULL"
 
     execute(
         f"INSERT INTO {schema}.analyses "
-        f"(analysis_id, server_name, subscription_id, resource_group, granularity, "
+        f"(analysis_id, group_name, server_name, granularity, "
         f"start_time, end_time, created_at, sku_name, sku_tier, vm_type, vcores, storage_size_gb, region) "
-        f"VALUES ('{analysis_id}', '{server_name}', '{subscription_id}', "
-        f"'{resource_group}', '{granularity}', '{start_time}', '{end_time}', '{now}', "
+        f"VALUES ('{analysis_id}', {group_name_sql}, '{server_name}', '{granularity}', "
+        f"'{start_time}', '{end_time}', '{now}', "
         f"'{sku_name}', '{sku_tier}', '{vm_type}', {vcores if vcores is not None else 'NULL'}, "
         f"{storage_size_gb if storage_size_gb is not None else 'NULL'}, '{region}')"
     )
