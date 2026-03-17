@@ -1,0 +1,14 @@
+command:
+  - uvicorn
+  - main:app
+  - --host
+  - 0.0.0.0
+  - --port
+  - 8000
+env:
+  - name: DATABRICKS_HOST
+    description: Databricks workspace URL
+  - name: DATABRICKS_TOKEN
+    description: Databricks personal access token
+  - name: DATABRICKS_SQL_WAREHOUSE_PATH
+    description: SQL warehouse HTTP path (e.g., /sql/1.0/warehouses/abc123)
