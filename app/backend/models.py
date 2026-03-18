@@ -13,6 +13,7 @@ class AnalysisSummary(BaseModel):
     sku_tier: str | None = None
     vm_type: str | None = None
     vcores: int | None = None
+    memory_gb: int | None = None
     storage_size_gb: int | None = None
     region: str | None = None
     ai_analysis: str | None = None

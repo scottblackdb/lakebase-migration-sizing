@@ -14,7 +14,10 @@ import {
   Box,
   IconButton,
   Tooltip,
+  TextField,
+  InputAdornment,
 } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import DnsIcon from "@mui/icons-material/Dns";
 import { fetchAnalyses } from "../api";
@@ -24,7 +27,16 @@ import UploadForm from "./UploadForm";
 export default function AnalysisList() {
   const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
+
+  const filteredAnalyses = analyses.filter((a) => {
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    const group = (a.group_name ?? "").toLowerCase();
+    const server = (a.server_name ?? "").toLowerCase();
+    return group.includes(q) || server.includes(q);
+  });
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -55,55 +67,79 @@ export default function AnalysisList() {
           </Typography>
         </Paper>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ fontWeight: 700 }}>Server Name</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Group Name</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Region</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>vCores</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Date Range</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>Created</TableCell>
-                <TableCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {analyses.map((a) => (
-                <TableRow
-                  key={a.analysis_id}
-                  hover
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => navigate(`/analysis/${a.analysis_id}`)}
-                >
-                  <TableCell>
-                    <Typography variant="body2" fontWeight={600}>
-                      {a.server_name}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>{a.group_name ?? "—"}</TableCell>
-                  <TableCell>
-                    {a.region && (
-                      <Chip label={a.region} size="small" variant="outlined" />
-                    )}
-                  </TableCell>
-                  <TableCell>{a.vcores ?? "—"}</TableCell>
-                  <TableCell>
-                    {a.start_time.slice(0, 10)} — {a.end_time.slice(0, 10)}
-                  </TableCell>
-                  <TableCell>{a.created_at.slice(0, 10)}</TableCell>
-                  <TableCell>
-                    <Tooltip title="View details">
-                      <IconButton size="small">
-                        <OpenInNewIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <>
+          <TextField
+            placeholder="Search group or server name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            size="small"
+            sx={{ mb: 2, minWidth: 320 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
+          />
+          {filteredAnalyses.length === 0 ? (
+            <Paper sx={{ p: 4, textAlign: "center" }}>
+              <Typography color="text.secondary">
+                No analyses match your search.
+              </Typography>
+            </Paper>
+          ) : (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700 }}>Server Name</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Group Name</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Region</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>vCores</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Date Range</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Created</TableCell>
+                    <TableCell />
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredAnalyses.map((a) => (
+                    <TableRow
+                      key={a.analysis_id}
+                      hover
+                      sx={{ cursor: "pointer" }}
+                      onClick={() => navigate(`/analysis/${a.analysis_id}`)}
+                    >
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={600}>
+                          {a.server_name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>{a.group_name ?? "—"}</TableCell>
+                      <TableCell>
+                        {a.region && (
+                          <Chip label={a.region} size="small" variant="outlined" />
+                        )}
+                      </TableCell>
+                      <TableCell>{a.vcores ?? "—"}</TableCell>
+                      <TableCell>
+                        {a.start_time.slice(0, 10)} — {a.end_time.slice(0, 10)}
+                      </TableCell>
+                      <TableCell>{a.created_at.slice(0, 10)}</TableCell>
+                      <TableCell>
+                        <Tooltip title="View details">
+                          <IconButton size="small">
+                            <OpenInNewIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </>
       )}
     </>
   );

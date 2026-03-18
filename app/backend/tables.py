@@ -48,6 +48,7 @@ def ensure_tables() -> None:
             sku_tier STRING,
             vm_type STRING,
             vcores INT,
+            memory_gb INT,
             storage_size_gb INT,
             region STRING,
             ai_analysis STRING

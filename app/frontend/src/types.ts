@@ -10,6 +10,7 @@ export interface AnalysisSummary {
   sku_tier: string | null;
   vm_type: string | null;
   vcores: number | null;
+  memory_gb: number | null;
   storage_size_gb: number | null;
   region: string | null;
   ai_analysis: string | null;

@@ -79,6 +79,7 @@ async def upload_metrics(file: UploadFile, group_name: str = Form("")):
     sku_tier = _escape(str(server_config.get("sku_tier") or ""))
     vm_type = _escape(str(server_config.get("vm_type") or ""))
     vcores = server_config.get("vcores")
+    memory_gb = server_config.get("memory_gb")
     storage_size_gb = server_config.get("storage_size_gb")
     region = _escape(str(server_config.get("region") or ""))
     normalized_group = group_name.strip()
@@ -87,11 +88,11 @@ async def upload_metrics(file: UploadFile, group_name: str = Form("")):
     execute(
         f"INSERT INTO {schema}.analyses "
         f"(analysis_id, group_name, server_name, granularity, "
-        f"start_time, end_time, created_at, sku_name, sku_tier, vm_type, vcores, storage_size_gb, region) "
+        f"start_time, end_time, created_at, sku_name, sku_tier, vm_type, vcores, memory_gb, storage_size_gb, region) "
         f"VALUES ('{analysis_id}', {group_name_sql}, '{server_name}', '{granularity}', "
         f"'{start_time}', '{end_time}', '{now}', "
         f"'{sku_name}', '{sku_tier}', '{vm_type}', {vcores if vcores is not None else 'NULL'}, "
-        f"{storage_size_gb if storage_size_gb is not None else 'NULL'}, '{region}')"
+        f"{memory_gb if memory_gb is not None else 'NULL'}, {storage_size_gb if storage_size_gb is not None else 'NULL'}, '{region}')"
     )
 
     metrics_loaded = []

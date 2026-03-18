@@ -31,6 +31,7 @@ import type { AnalysisSummary, MetricResponse } from "../types";
 import MetricChart from "./MetricChart";
 import CpuCapacityChart from "./CpuCapacityChart";
 import CacheHitRatioChart from "./CacheHitRatioChart";
+import LakebaseEstimateModal from "./LakebaseEstimateModal";
 
 interface OverviewCardProps {
   icon: React.ReactNode;
@@ -70,6 +71,7 @@ export default function AnalysisDetail() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [lakebaseModalOpen, setLakebaseModalOpen] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -120,6 +122,9 @@ export default function AnalysisDetail() {
   if (analysis.vcores) {
     overviewCards.push({ icon: <MemoryIcon />, label: "vCores", value: analysis.vcores });
   }
+  if (analysis.memory_gb != null) {
+    overviewCards.push({ icon: <MemoryIcon />, label: "Memory", value: `${analysis.memory_gb} GB` });
+  }
   if (analysis.region) {
     overviewCards.push({ icon: <LocationOnIcon />, label: "Region", value: analysis.region });
   }
@@ -157,25 +162,37 @@ export default function AnalysisDetail() {
           Back to list
         </Button>
 
-        {hasAiAnalysis ? (
-          <Button
-            variant="outlined"
-            startIcon={<VisibilityIcon />}
-            onClick={() => setModalOpen(true)}
-            sx={{ borderColor: "#00A972", color: "#00A972", "&:hover": { borderColor: "#00875C", backgroundColor: "rgba(0,169,114,0.04)" } }}
-          >
-            View Analysis
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesomeIcon />}
-            onClick={handleGenerateAnalysis}
-            disabled={generating}
-          >
-            {generating ? "Analyzing..." : "Generate Migration Analysis"}
-          </Button>
-        )}
+        <Box sx={{ display: "flex", gap: 1 }}>
+          {hasAiAnalysis ? (
+            <Button
+              variant="outlined"
+              startIcon={<VisibilityIcon />}
+              onClick={() => setModalOpen(true)}
+              sx={{ borderColor: "#00A972", color: "#00A972", "&:hover": { borderColor: "#00875C", backgroundColor: "rgba(0,169,114,0.04)" } }}
+            >
+              View Analysis
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              startIcon={generating ? <CircularProgress size={18} color="inherit" /> : <AutoAwesomeIcon />}
+              onClick={handleGenerateAnalysis}
+              disabled={generating}
+            >
+              {generating ? "Analyzing..." : "Generate Migration Analysis"}
+            </Button>
+          )}
+          {analysis.vcores && metrics.find((m) => m.metric_name === "cpu_percent" && m.data_points > 0) && (
+            <Button
+              variant="outlined"
+              startIcon={<StorageIcon />}
+              onClick={() => setLakebaseModalOpen(true)}
+              sx={{ borderColor: "#143D4A", color: "#143D4A", "&:hover": { borderColor: "#1B3139", backgroundColor: "rgba(20,61,74,0.04)" } }}
+            >
+              Lakebase Estimate
+            </Button>
+          )}
+        </Box>
       </Box>
 
       {aiError && (
@@ -189,6 +206,9 @@ export default function AnalysisDetail() {
           {analysis.server_name}
         </Typography>
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          {analysis.group_name && (
+            <Chip label={analysis.group_name} size="small" variant="filled" sx={{ backgroundColor: "#143D4A", color: "#fff" }} />
+          )}
           <Chip label={`Granularity: ${analysis.granularity}`} size="small" variant="outlined" />
         </Box>
       </Paper>
@@ -298,6 +318,20 @@ export default function AnalysisDetail() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Lakebase Estimate Modal */}
+      {analysis.vcores && (() => {
+        const cpuMetric = metrics.find((m) => m.metric_name === "cpu_percent" && m.data_points > 0);
+        return cpuMetric ? (
+          <LakebaseEstimateModal
+            open={lakebaseModalOpen}
+            onClose={() => setLakebaseModalOpen(false)}
+            cpuMetric={cpuMetric}
+            vcores={analysis.vcores}
+            serverName={analysis.server_name}
+          />
+        ) : null;
+      })()}
     </>
   );
 }

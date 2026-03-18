@@ -103,21 +103,68 @@ def _parse_vm_type_from_sku(sku_name: str) -> str | None:
     return sku_name
 
 
+# Burstable tier: SKU name -> memory GiB (Azure PostgreSQL Flexible Server)
+BURSTABLE_SKU_MEMORY_GB = {
+    "B1ms": 2,
+    "B2s": 4,
+    "B2ms": 8,
+    "B4ms": 16,
+    "B8ms": 32,
+    "B12ms": 48,
+    "B16ms": 64,
+}
+
+
+def _parse_memory_gb_from_sku(
+    sku_name: str | None, sku_tier: str | None, vcores: int | None
+) -> int | None:
+    """Derive VM memory (GiB) from Azure SKU name/tier. Returns None if unknown."""
+    if not sku_name:
+        return None
+    sku_upper = sku_name.strip().upper()
+    tier = (sku_tier or "").strip().lower().replace(" ", "")
+    # Burstable: use known SKU mapping
+    if tier == "burstable":
+        if sku_upper in BURSTABLE_SKU_MEMORY_GB:
+            return BURSTABLE_SKU_MEMORY_GB[sku_upper]
+        m = re.match(r"B(\d+)(?:ms|s)$", sku_upper)
+        if m:
+            n = int(m.group(1))
+            if n <= 2:
+                return 4 if n == 2 else 2
+            return n * 4
+        return None
+    # General Purpose: 4 GiB per vCore
+    if tier == "generalpurpose":
+        return (vcores * 4) if vcores else None
+    # Memory Optimized: ~8 GiB per vCore
+    if tier == "memoryoptimized":
+        return (vcores * 8) if vcores else None
+    # Unknown tier: try vcores * 4 for Standard_* SKUs
+    if vcores and (sku_upper.startswith("STANDARD_") or "D" in sku_upper):
+        return vcores * 4
+    return None
+
+
 def get_server_config(
     credential: DefaultAzureCredential,
     subscription_id: str,
     resource_group: str,
     server_name: str,
 ) -> dict:
-    """Fetch server SKU details including vCores."""
+    """Fetch server SKU details including vCores and memory (GiB)."""
     pg_client = PostgreSQLManagementClient(credential, subscription_id)
     server = pg_client.servers.get(resource_group, server_name)
     sku_name = server.sku.name if server.sku else None
+    sku_tier = server.sku.tier if server.sku else None
+    vcores = _parse_vcores_from_sku(sku_name) if sku_name else None
+    memory_gb = _parse_memory_gb_from_sku(sku_name, sku_tier, vcores)
     return {
         "sku_name": sku_name,
-        "sku_tier": server.sku.tier if server.sku else None,
+        "sku_tier": sku_tier,
         "vm_type": _parse_vm_type_from_sku(sku_name) if sku_name else None,
-        "vcores": _parse_vcores_from_sku(sku_name) if sku_name else None,
+        "vcores": vcores,
+        "memory_gb": memory_gb,
         "storage_size_gb": server.storage.storage_size_gb if server.storage else None,
         "region": server.location,
     }
@@ -142,7 +189,7 @@ def export_metrics(
 
     print("Fetching server configuration ...")
     server_info = get_server_config(credential, subscription_id, resource_group, server_name)
-    print(f"  SKU: {server_info['sku_name']} ({server_info['sku_tier']}), vCores: {server_info['vcores']}, Storage: {server_info['storage_size_gb']} GB")
+    print(f"  SKU: {server_info['sku_name']} ({server_info['sku_tier']}), vCores: {server_info['vcores']}, Memory: {server_info.get('memory_gb') or '?'} GB, Storage: {server_info['storage_size_gb']} GB")
 
     all_rows = []
     for metric_name, display_name in METRICS.items():
