@@ -25,12 +25,12 @@ def _sql_val(v) -> str:
 
 
 def _insert_metric_batch(
-    schema: str, metric_name: str, analysis_id: str, rows: list[dict]
+    metric_name: str, analysis_id: str, rows: list[dict]
 ) -> None:
     if not rows:
         return
 
-    table = f"{schema}.metric_{metric_name}"
+    table = f"{settings.schema_prefix}metric_{metric_name}"
 
     for i in range(0, len(rows), BATCH_SIZE):
         batch = rows[i : i + BATCH_SIZE]
@@ -66,7 +66,6 @@ async def upload_metrics(file: UploadFile, group_name: str = Form("")):
         raise HTTPException(status_code=400, detail=f"Missing keys: {missing}")
 
     analysis_id = uuid.uuid4().hex[:12]
-    schema = settings.full_schema
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     server_name = _escape(data["server_name"])
@@ -85,8 +84,9 @@ async def upload_metrics(file: UploadFile, group_name: str = Form("")):
     normalized_group = group_name.strip()
     group_name_sql = f"'{_escape(normalized_group)}'" if normalized_group else "NULL"
 
+    s = settings.schema_prefix
     execute(
-        f"INSERT INTO {schema}.analyses "
+        f"INSERT INTO {s}analyses "
         f"(analysis_id, group_name, server_name, granularity, "
         f"start_time, end_time, created_at, sku_name, sku_tier, vm_type, vcores, memory_gb, storage_size_gb, region) "
         f"VALUES ('{analysis_id}', {group_name_sql}, '{server_name}', '{granularity}', "
@@ -101,7 +101,7 @@ async def upload_metrics(file: UploadFile, group_name: str = Form("")):
         if metric_name in metrics_data:
             metric_info = metrics_data[metric_name]
             rows = metric_info.get("data", [])
-            _insert_metric_batch(schema, metric_name, analysis_id, rows)
+            _insert_metric_batch(metric_name, analysis_id, rows)
             metrics_loaded.append(metric_name)
 
     return UploadResponse(

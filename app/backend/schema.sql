@@ -1,102 +1,105 @@
 -- DDL for Lakebase Migration Sizing app (matches backend/tables.py).
--- Schema: use main.default or set via env CATALOG and SCHEMA.
+-- PostgreSQL database, schema: estimator.
+
+CREATE SCHEMA IF NOT EXISTS estimator;
+SET search_path TO estimator;
 
 -- Analyses (one row per uploaded metrics run)
-CREATE TABLE IF NOT EXISTS main.default.analyses (
-    analysis_id STRING,
-    group_name STRING,
-    server_name STRING,
-    granularity STRING,
-    start_time STRING,
-    end_time STRING,
-    created_at STRING,
-    sku_name STRING,
-    sku_tier STRING,
-    vm_type STRING,
+CREATE TABLE IF NOT EXISTS analyses (
+    analysis_id TEXT,
+    group_name TEXT,
+    server_name TEXT,
+    granularity TEXT,
+    start_time TEXT,
+    end_time TEXT,
+    created_at TEXT,
+    sku_name TEXT,
+    sku_tier TEXT,
+    vm_type TEXT,
     vcores INT,
     memory_gb INT,
     storage_size_gb INT,
-    region STRING,
-    ai_analysis STRING
+    region TEXT,
+    ai_analysis TEXT
 );
 
 -- Metric tables (one per metric type; rows keyed by analysis_id + timestamp)
-CREATE TABLE IF NOT EXISTS main.default.metric_cpu_percent (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_cpu_percent (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS main.default.metric_memory_percent (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_memory_percent (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS main.default.metric_storage_percent (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_storage_percent (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS main.default.metric_storage_used (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_storage_used (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS main.default.metric_iops (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_iops (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS main.default.metric_read_iops (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_read_iops (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS main.default.metric_write_iops (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_write_iops (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS main.default.metric_xact_commit (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_xact_commit (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS main.default.metric_blks_hit (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_blks_hit (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );
 
-CREATE TABLE IF NOT EXISTS main.default.metric_blks_read (
-    analysis_id STRING,
-    timestamp STRING,
-    average DOUBLE,
-    maximum DOUBLE,
-    minimum DOUBLE
+CREATE TABLE IF NOT EXISTS metric_blks_read (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
 );

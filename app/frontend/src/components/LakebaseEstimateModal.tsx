@@ -11,6 +11,8 @@ import {
   TextField,
   Paper,
   Chip,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import StorageIcon from "@mui/icons-material/Storage";
@@ -34,6 +36,8 @@ interface Props {
   cpuMetric: MetricResponse;
   vcores: number;
   serverName: string;
+  storageGb: number | null;
+  skuName: string | null;
 }
 
 const CU_PER_CORE = 4;
@@ -43,16 +47,25 @@ function formatTimestamp(ts: string): string {
   return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
+function isAwsSku(skuName: string | null): boolean {
+  return skuName != null && skuName.startsWith("db.");
+}
+
 export default function LakebaseEstimateModal({
   open,
   onClose,
   cpuMetric,
   vcores,
   serverName,
+  storageGb,
+  skuName,
 }: Props) {
   const [safetyMarginPct, setSafetyMarginPct] = useState<number>(15);
+  const [scaleToZero, setScaleToZero] = useState<boolean>(true);
 
-  const { displayData, peakCores, avgCores, safetyLineCores, monthlyCU } =
+  const SCALE_TO_ZERO_THRESHOLD = 0.3;
+
+  const { displayData, peakCores, avgCores, safetyLineCores, monthlyCU, scaleToZeroPeriods, totalPeriods } =
     useMemo(() => {
       let totalCores = 0;
       let count = 0;
@@ -72,9 +85,11 @@ export default function LakebaseEstimateModal({
           peak = maxUsed;
         }
         // CU required per period = max cores used in that period × (1 + margin) × CU_PER_CORE
+        // If scale-to-zero is enabled and peak cores < threshold, CU = 0
+        const isIdle = scaleToZero && maxUsed != null && maxUsed < SCALE_TO_ZERO_THRESHOLD;
         const cuRequired =
           maxUsed != null
-            ? Math.ceil(maxUsed * (1 + margin) * CU_PER_CORE)
+            ? isIdle ? 0 : Math.ceil(maxUsed * (1 + margin) * CU_PER_CORE)
             : null;
         return {
           ts: formatTimestamp(d.timestamp),
@@ -90,13 +105,16 @@ export default function LakebaseEstimateModal({
       const safetyCores = peak * (1 + margin);
 
       // Monthly CU: sum CU across all periods, scaled to a full month
-      // Determine hours per data point from the data timestamps
       let totalCU = 0;
       let cuCount = 0;
+      let s2zPeriods = 0;
       for (const d of data) {
         if (d.lakebaseCU != null) {
           totalCU += d.lakebaseCU;
           cuCount++;
+          if (d.lakebaseCU === 0 && scaleToZero) {
+            s2zPeriods++;
+          }
         }
       }
       // Average CU per period × periods per month
@@ -123,8 +141,10 @@ export default function LakebaseEstimateModal({
         avgCores: Math.round(avg * 100) / 100,
         safetyLineCores: Math.round(safetyCores * 100) / 100,
         monthlyCU: monthly,
+        scaleToZeroPeriods: s2zPeriods,
+        totalPeriods: cuCount,
       };
-    }, [cpuMetric, vcores, safetyMarginPct]);
+    }, [cpuMetric, vcores, safetyMarginPct, scaleToZero]);
 
   return (
     <Dialog
@@ -167,7 +187,7 @@ export default function LakebaseEstimateModal({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(7, 1fr)",
             gap: 2,
             mb: 3,
           }}
@@ -225,9 +245,95 @@ export default function LakebaseEstimateModal({
               </Typography>
             </Paper>
           </Box>
+          <Box>
+            <Typography variant="overline" fontWeight={700} color="#00A972" sx={{ mb: 0.5, display: "block", letterSpacing: 1 }}>
+              Monthly CU Cost
+            </Typography>
+            <Paper
+              sx={{
+                p: 2,
+                textAlign: "center",
+                backgroundColor: "#1B3139",
+                color: "#fff",
+              }}
+              elevation={0}
+            >
+              <Typography variant="caption" sx={{ color: "#A0ACBE" }}>
+                CU Cost Per Month
+              </Typography>
+              <Typography variant="h5" fontWeight={700} color="#00A972">
+                ${(monthlyCU * 0.111).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+            </Paper>
+          </Box>
+          <Box>
+            <Typography variant="overline" fontWeight={700} color="#00A972" sx={{ mb: 0.5, display: "block", letterSpacing: 1 }}>
+              Storage Cost
+            </Typography>
+            <Paper
+              sx={{
+                p: 2,
+                textAlign: "center",
+                backgroundColor: "#1B3139",
+                color: "#fff",
+              }}
+              elevation={0}
+            >
+              <Typography variant="caption" sx={{ color: "#A0ACBE" }}>
+                {storageGb != null ? `${storageGb} GB x $${isAwsSku(skuName) ? "0.345" : "0.390"}/GB` : "Storage N/A"}
+              </Typography>
+              <Typography variant="h5" fontWeight={700} color="#00A972">
+                {storageGb != null
+                  ? `$${(storageGb * (isAwsSku(skuName) ? 0.345 : 0.390)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  : "—"}
+              </Typography>
+            </Paper>
+          </Box>
+          <Box>
+            <Typography variant="overline" fontWeight={700} color="#00A972" sx={{ mb: 0.5, display: "block", letterSpacing: 1 }}>
+              Total Monthly
+            </Typography>
+            <Paper
+              sx={{
+                p: 2,
+                textAlign: "center",
+                backgroundColor: "#00A972",
+                color: "#fff",
+              }}
+              elevation={0}
+            >
+              <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.8)" }}>
+                CU + Storage
+              </Typography>
+              <Typography variant="h5" fontWeight={700}>
+                ${((monthlyCU * 0.111) + (storageGb != null ? storageGb * (isAwsSku(skuName) ? 0.345 : 0.390) : 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </Typography>
+            </Paper>
+          </Box>
+          <Box>
+            <Typography variant="overline" fontWeight={700} color="text.secondary" sx={{ mb: 0.5, display: "block", letterSpacing: 1 }}>
+              Scale to Zero
+            </Typography>
+            <Paper
+              sx={{ p: 2, textAlign: "center", backgroundColor: scaleToZero ? "#F7F8FA" : "#F7F8FA" }}
+              elevation={0}
+            >
+              <Typography variant="caption" color="text.secondary">
+                Idle Periods ({"\u2264"} {SCALE_TO_ZERO_THRESHOLD} cores)
+              </Typography>
+              <Typography variant="h5" fontWeight={700} color={scaleToZero ? "#00A972" : "#1B3139"}>
+                {scaleToZero ? `${scaleToZeroPeriods} / ${totalPeriods}` : "Off"}
+              </Typography>
+              {scaleToZero && totalPeriods > 0 && (
+                <Typography variant="caption" color="text.secondary">
+                  {Math.round((scaleToZeroPeriods / totalPeriods) * 100)}% idle
+                </Typography>
+              )}
+            </Paper>
+          </Box>
         </Box>
 
-        {/* Safety margin input */}
+        {/* Safety margin & scale-to-zero inputs */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
           <TextField
             label="Safety Margin %"
@@ -241,9 +347,18 @@ export default function LakebaseEstimateModal({
             slotProps={{ htmlInput: { min: 0, max: 200, step: 5 } }}
             sx={{ width: 160 }}
           />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={scaleToZero}
+                onChange={(e) => setScaleToZero(e.target.checked)}
+                sx={{ color: "#00A972", "&.Mui-checked": { color: "#00A972" } }}
+              />
+            }
+            label={<Typography variant="body2">Scale to Zero ({"\u2264"} {SCALE_TO_ZERO_THRESHOLD} cores = 0 CU)</Typography>}
+          />
           <Typography variant="body2" color="text.secondary">
-            Applied on top of peak CPU cores per period. 1 CPU core = {CU_PER_CORE}{" "}
-            Lakebase CU.
+            Applied on top of peak CPU cores per period.
           </Typography>
         </Box>
 

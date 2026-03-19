@@ -1,0 +1,78 @@
+{
+  "server_name": "lakebase-workshop-cluster-94a08d18",
+  "granularity": "PT1H",
+  "start_time": "2025-12-18T19:41:57Z",
+  "end_time": "2026-03-18T19:41:57Z",
+  "server_config": {
+    "sku_name": "aurora-provisioned",
+    "sku_tier": "Aurora Provisioned",
+    "vm_type": null,
+    "vcores": null,
+    "memory_gb": null,
+    "storage_size_gb": 1,
+    "region": "us-west-2",
+    "engine": "aurora-postgresql",
+    "engine_version": "15.8",
+    "multi_az": false,
+    "storage_type": null,
+    "is_cluster": true,
+    "cluster_members": [],
+    "cw_instance_id": null,
+    "serverless_v2_config": null
+  },
+  "metrics": {
+    "cpu_percent": {
+      "display_name": "CPU Percent",
+      "data_points": 0,
+      "data": []
+    },
+    "memory_percent": {
+      "display_name": "Memory Percent",
+      "data_points": 0,
+      "data": []
+    },
+    "storage_percent": {
+      "display_name": "Storage Percent",
+      "data_points": 0,
+      "data": []
+    },
+    "storage_used": {
+      "display_name": "Storage Used (bytes)",
+      "data_points": 0,
+      "data": []
+    },
+    "iops": {
+      "display_name": "Disk IOPS",
+      "data_points": 0,
+      "data": []
+    },
+    "read_iops": {
+      "display_name": "Disk Read IOPS",
+      "data_points": 0,
+      "data": []
+    },
+    "write_iops": {
+      "display_name": "Disk Write IOPS",
+      "data_points": 0,
+      "data": []
+    },
+    "xact_commit": {
+      "display_name": "Transactions Committed Per Second",
+      "data_points": 0,
+      "data": [],
+      "note": "RDS does not expose xact_commit directly; using DatabaseConnections as proxy"
+    },
+    "blks_hit": {
+      "display_name": "Buffer Cache Blocks Hit",
+      "data_points": 0,
+      "data": [],
+      "note": "RDS exposes cache hit ratio rather than raw block counts"
+    },
+    "blks_read": {
+      "display_name": "Disk Blocks Read",
+      "data_points": 0,
+      "data": [],
+      "note": "RDS does not expose blks_read directly; using DiskQueueDepth as proxy"
+    }
+  }
+}

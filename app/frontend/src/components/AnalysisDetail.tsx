@@ -329,6 +329,8 @@ export default function AnalysisDetail() {
             cpuMetric={cpuMetric}
             vcores={analysis.vcores}
             serverName={analysis.server_name}
+            storageGb={analysis.storage_size_gb}
+            skuName={analysis.sku_name}
           />
         ) : null;
       })()}

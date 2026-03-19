@@ -1,0 +1,2563 @@
+{
+  "server_name": "lakebase-advisor-mock-rds",
+  "granularity": "PT1H",
+  "start_time": "2025-12-18T19:41:24Z",
+  "end_time": "2026-03-18T19:41:24Z",
+  "server_config": {
+    "sku_name": "db.t3.micro",
+    "sku_tier": "Burstable",
+    "vm_type": "t3.micro",
+    "vcores": 2,
+    "memory_gb": 1,
+    "storage_size_gb": 20,
+    "region": "us-west-2",
+    "engine": "postgres",
+    "engine_version": "16.6",
+    "multi_az": false,
+    "storage_type": "gp3",
+    "is_cluster": false,
+    "cw_instance_id": "lakebase-advisor-mock-rds"
+  },
+  "metrics": {
+    "cpu_percent": {
+      "display_name": "CPU Percent",
+      "data_points": 39,
+      "data": [
+        {
+          "timestamp": "2026-03-16T22:40:00-06:00",
+          "average": 24.916417060603486,
+          "maximum": 49.8293231204729,
+          "minimum": 0.0035110007340715,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-16T23:40:00-06:00",
+          "average": 5.984555657058143,
+          "maximum": 33.649439176013736,
+          "minimum": 4.495729057395474,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T00:40:00-06:00",
+          "average": 4.98062412553594,
+          "maximum": 6.560434254125248,
+          "minimum": 4.270795101931867,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T01:40:00-06:00",
+          "average": 4.811113466853611,
+          "maximum": 7.3501225020417005,
+          "minimum": 4.2206763091603685,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T02:40:00-06:00",
+          "average": 4.746784654766754,
+          "maximum": 6.175308765438272,
+          "minimum": 4.2039236620846125,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T03:40:00-06:00",
+          "average": 4.763264242255073,
+          "maximum": 7.25701511461079,
+          "minimum": 4.1620792046174895,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T04:40:00-06:00",
+          "average": 4.699016226722942,
+          "maximum": 7.116785279754663,
+          "minimum": 4.141804726824227,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T05:40:00-06:00",
+          "average": 4.746342288951202,
+          "maximum": 7.248673717927329,
+          "minimum": 4.183333333333334,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T06:40:00-06:00",
+          "average": 4.720633999721305,
+          "maximum": 6.931585005755468,
+          "minimum": 4.107922541079224,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T07:40:00-06:00",
+          "average": 4.691864645229222,
+          "maximum": 7.28296918487409,
+          "minimum": 4.121153589982683,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T08:40:00-06:00",
+          "average": 4.650226889869817,
+          "maximum": 6.063891900909166,
+          "minimum": 4.112828027174637,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T09:40:00-06:00",
+          "average": 4.686856738306555,
+          "maximum": 7.482232825064228,
+          "minimum": 4.166736112268538,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T10:40:00-06:00",
+          "average": 4.740160160961216,
+          "maximum": 7.124881251979135,
+          "minimum": 4.229385906487279,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T11:40:00-06:00",
+          "average": 4.70906662545083,
+          "maximum": 7.426278368882894,
+          "minimum": 4.087783272557736,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T12:40:00-06:00",
+          "average": 4.666444300194658,
+          "maximum": 6.058434307238454,
+          "minimum": 4.058333333333334,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T13:40:00-06:00",
+          "average": 4.665324201147549,
+          "maximum": 8.100907501456998,
+          "minimum": 4.1,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T14:40:00-06:00",
+          "average": 4.655865942702931,
+          "maximum": 6.091768196136602,
+          "minimum": 4.112377170884703,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T15:40:00-06:00",
+          "average": 4.688737492036406,
+          "maximum": 7.243239642999867,
+          "minimum": 4.154015548363417,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T16:40:00-06:00",
+          "average": 4.724522890958151,
+          "maximum": 7.191666666666667,
+          "minimum": 4.1,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T17:40:00-06:00",
+          "average": 4.720260487877088,
+          "maximum": 7.466666666666667,
+          "minimum": 4.07479626018699,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T18:40:00-06:00",
+          "average": 4.6200456692680465,
+          "maximum": 6.0,
+          "minimum": 4.091530282323922,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T19:40:00-06:00",
+          "average": 4.654295490645158,
+          "maximum": 7.258454307571793,
+          "minimum": 4.116598056699055,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T20:40:00-06:00",
+          "average": 4.641725588137875,
+          "maximum": 6.058333333333334,
+          "minimum": 4.091666666666666,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T21:40:00-06:00",
+          "average": 4.609972125496757,
+          "maximum": 7.1265630983898625,
+          "minimum": 4.091803060102003,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T22:40:00-06:00",
+          "average": 4.620477700559709,
+          "maximum": 7.349877502041632,
+          "minimum": 4.029438209730594,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-17T23:40:00-06:00",
+          "average": 4.634914120433263,
+          "maximum": 7.293071581997102,
+          "minimum": 4.049932501124981,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T00:40:00-06:00",
+          "average": 4.581290726764132,
+          "maximum": 6.264075402452247,
+          "minimum": 4.050067501125019,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T01:40:00-06:00",
+          "average": 4.618360069653116,
+          "maximum": 7.281917821930835,
+          "minimum": 4.008400140002333,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T02:40:00-06:00",
+          "average": 4.603972007576631,
+          "maximum": 5.991966264979916,
+          "minimum": 4.021313795687287,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T03:40:00-06:00",
+          "average": 4.574728833914317,
+          "maximum": 7.098410156315166,
+          "minimum": 4.004595710670041,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T04:40:00-06:00",
+          "average": 4.583760509903598,
+          "maximum": 7.2319909245604075,
+          "minimum": 4.0667344455740935,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T05:40:00-06:00",
+          "average": 4.617253159690637,
+          "maximum": 7.059959704946967,
+          "minimum": 4.016800560018667,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T06:40:00-06:00",
+          "average": 4.571670324698062,
+          "maximum": 5.958531951065035,
+          "minimum": 4.037830727475565,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T07:40:00-06:00",
+          "average": 4.5744004046332485,
+          "maximum": 7.114973975710663,
+          "minimum": 4.041599306678222,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T08:40:00-06:00",
+          "average": 4.56604561746384,
+          "maximum": 5.87607728083482,
+          "minimum": 3.9870545842786598,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T09:40:00-06:00",
+          "average": 4.522180505588695,
+          "maximum": 6.939926263283453,
+          "minimum": 3.975,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T10:40:00-06:00",
+          "average": 4.5319644521804685,
+          "maximum": 7.168428940138206,
+          "minimum": 4.033333333333333,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T11:40:00-06:00",
+          "average": 4.586655603206179,
+          "maximum": 7.09829173895636,
+          "minimum": 3.9794864963868264,
+          "metric": "cpu_percent"
+        },
+        {
+          "timestamp": "2026-03-18T12:40:00-06:00",
+          "average": 4.502758211052736,
+          "maximum": 5.844447774614117,
+          "minimum": 3.945480631276901,
+          "metric": "cpu_percent"
+        }
+      ]
+    },
+    "memory_percent": {
+      "display_name": "Memory Percent",
+      "data_points": 40,
+      "data": [
+        {
+          "timestamp": "2026-03-16T22:40:00-06:00",
+          "average": 73.99,
+          "maximum": 73.99,
+          "minimum": 73.99,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-16T23:40:00-06:00",
+          "average": 82.24,
+          "maximum": 83.14,
+          "minimum": 81.13,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T00:40:00-06:00",
+          "average": 83.87,
+          "maximum": 84.27,
+          "minimum": 83.27,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T01:40:00-06:00",
+          "average": 84.16,
+          "maximum": 84.47,
+          "minimum": 83.61,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T02:40:00-06:00",
+          "average": 84.44,
+          "maximum": 84.83,
+          "minimum": 83.98,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T03:40:00-06:00",
+          "average": 84.38,
+          "maximum": 84.68,
+          "minimum": 83.98,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T04:40:00-06:00",
+          "average": 84.23,
+          "maximum": 84.7,
+          "minimum": 77.89,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T05:40:00-06:00",
+          "average": 80.62,
+          "maximum": 81.4,
+          "minimum": 78.76,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T06:40:00-06:00",
+          "average": 82.23,
+          "maximum": 85.45,
+          "minimum": 80.79,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T07:40:00-06:00",
+          "average": 84.73,
+          "maximum": 85.48,
+          "minimum": 84.25,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T08:40:00-06:00",
+          "average": 84.78,
+          "maximum": 85.11,
+          "minimum": 84.41,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T09:40:00-06:00",
+          "average": 84.79,
+          "maximum": 85.11,
+          "minimum": 84.35,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T10:40:00-06:00",
+          "average": 84.84,
+          "maximum": 85.42,
+          "minimum": 80.95,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T11:40:00-06:00",
+          "average": 83.75,
+          "maximum": 84.5,
+          "minimum": 83.29,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T12:40:00-06:00",
+          "average": 84.07,
+          "maximum": 84.98,
+          "minimum": 83.52,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T13:40:00-06:00",
+          "average": 84.84,
+          "maximum": 85.35,
+          "minimum": 84.23,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T14:40:00-06:00",
+          "average": 84.92,
+          "maximum": 85.27,
+          "minimum": 84.31,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T15:40:00-06:00",
+          "average": 84.7,
+          "maximum": 85.33,
+          "minimum": 83.66,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T16:40:00-06:00",
+          "average": 85.09,
+          "maximum": 85.51,
+          "minimum": 81.83,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T17:40:00-06:00",
+          "average": 83.22,
+          "maximum": 83.78,
+          "minimum": 82.1,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T18:40:00-06:00",
+          "average": 84.22,
+          "maximum": 84.75,
+          "minimum": 83.25,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T19:40:00-06:00",
+          "average": 84.55,
+          "maximum": 84.82,
+          "minimum": 84.2,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T20:40:00-06:00",
+          "average": 84.64,
+          "maximum": 84.86,
+          "minimum": 84.19,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T21:40:00-06:00",
+          "average": 84.66,
+          "maximum": 84.94,
+          "minimum": 84.12,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T22:40:00-06:00",
+          "average": 84.41,
+          "maximum": 84.8,
+          "minimum": 82.21,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-17T23:40:00-06:00",
+          "average": 83.48,
+          "maximum": 83.91,
+          "minimum": 82.37,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T00:40:00-06:00",
+          "average": 84.51,
+          "maximum": 85.31,
+          "minimum": 83.47,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T01:40:00-06:00",
+          "average": 85.16,
+          "maximum": 85.62,
+          "minimum": 84.81,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T02:40:00-06:00",
+          "average": 85.23,
+          "maximum": 85.45,
+          "minimum": 84.81,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T03:40:00-06:00",
+          "average": 85.25,
+          "maximum": 85.48,
+          "minimum": 84.63,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T04:40:00-06:00",
+          "average": 85.16,
+          "maximum": 85.54,
+          "minimum": 82.41,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T05:40:00-06:00",
+          "average": 82.76,
+          "maximum": 83.1,
+          "minimum": 82.16,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T06:40:00-06:00",
+          "average": 83.04,
+          "maximum": 83.82,
+          "minimum": 82.62,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T07:40:00-06:00",
+          "average": 83.2,
+          "maximum": 83.75,
+          "minimum": 82.65,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T08:40:00-06:00",
+          "average": 84.28,
+          "maximum": 85.36,
+          "minimum": 83.5,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T09:40:00-06:00",
+          "average": 85.11,
+          "maximum": 85.47,
+          "minimum": 84.71,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T10:40:00-06:00",
+          "average": 85.02,
+          "maximum": 85.45,
+          "minimum": 82.46,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T11:40:00-06:00",
+          "average": 83.23,
+          "maximum": 83.85,
+          "minimum": 82.69,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T12:40:00-06:00",
+          "average": 83.97,
+          "maximum": 84.27,
+          "minimum": 83.32,
+          "metric": "memory_percent"
+        },
+        {
+          "timestamp": "2026-03-18T13:40:00-06:00",
+          "average": 84.04,
+          "maximum": 84.04,
+          "minimum": 84.04,
+          "metric": "memory_percent"
+        }
+      ]
+    },
+    "storage_percent": {
+      "display_name": "Storage Percent",
+      "data_points": 40,
+      "data": [
+        {
+          "timestamp": "2026-03-16T22:40:00-06:00",
+          "average": 3.56,
+          "maximum": 3.56,
+          "minimum": 3.56,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-16T23:40:00-06:00",
+          "average": 5.74,
+          "maximum": 7.5,
+          "minimum": 4.04,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T00:40:00-06:00",
+          "average": 9.53,
+          "maximum": 11.25,
+          "minimum": 7.82,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T01:40:00-06:00",
+          "average": 13.11,
+          "maximum": 14.38,
+          "minimum": 11.57,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T02:40:00-06:00",
+          "average": 14.61,
+          "maximum": 14.69,
+          "minimum": 14.38,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T03:40:00-06:00",
+          "average": 14.69,
+          "maximum": 14.69,
+          "minimum": 14.69,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T04:40:00-06:00",
+          "average": 14.69,
+          "maximum": 14.69,
+          "minimum": 14.69,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T05:40:00-06:00",
+          "average": 14.69,
+          "maximum": 14.69,
+          "minimum": 14.69,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T06:40:00-06:00",
+          "average": 14.8,
+          "maximum": 15.19,
+          "minimum": 14.69,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T07:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T08:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T09:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T10:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T11:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T12:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T13:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T14:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T15:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T16:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T17:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T18:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T19:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T20:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T21:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T22:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-17T23:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T00:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T01:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T02:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T03:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T04:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T05:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T06:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T07:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T08:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T09:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T10:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T11:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T12:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        },
+        {
+          "timestamp": "2026-03-18T13:40:00-06:00",
+          "average": 15.19,
+          "maximum": 15.19,
+          "minimum": 15.19,
+          "metric": "storage_percent"
+        }
+      ]
+    },
+    "storage_used": {
+      "display_name": "Storage Used (bytes)",
+      "data_points": 40,
+      "data": [
+        {
+          "timestamp": "2026-03-16T22:40:00-06:00",
+          "average": 764153856.0,
+          "maximum": 764153856.0,
+          "minimum": 764153856.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-16T23:40:00-06:00",
+          "average": 1232689356.7999992,
+          "maximum": 1611280384.0,
+          "minimum": 866881536.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T00:40:00-06:00",
+          "average": 2047493120.0,
+          "maximum": 2416594944.0,
+          "minimum": 1678389248.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T01:40:00-06:00",
+          "average": 2814779323.7333336,
+          "maximum": 3087691776.0,
+          "minimum": 2483703808.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T02:40:00-06:00",
+          "average": 3138028544.0,
+          "maximum": 3154808832.0,
+          "minimum": 3087691776.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T03:40:00-06:00",
+          "average": 3154856550.4000015,
+          "maximum": 3154882560.0,
+          "minimum": 3154808832.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T04:40:00-06:00",
+          "average": 3154887680.0,
+          "maximum": 3154890752.0,
+          "minimum": 3154882560.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T05:40:00-06:00",
+          "average": 3154895872.0,
+          "maximum": 3154898944.0,
+          "minimum": 3154890752.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T06:40:00-06:00",
+          "average": 3178446711.466667,
+          "maximum": 3261685760.0,
+          "minimum": 3154898944.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T07:40:00-06:00",
+          "average": 3261692040.533333,
+          "maximum": 3261693952.0,
+          "minimum": 3261685760.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T08:40:00-06:00",
+          "average": 3261699072.0,
+          "maximum": 3261702144.0,
+          "minimum": 3261693952.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T09:40:00-06:00",
+          "average": 3261707264.0,
+          "maximum": 3261710336.0,
+          "minimum": 3261702144.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T10:40:00-06:00",
+          "average": 3261716480.0,
+          "maximum": 3261718528.0,
+          "minimum": 3261710336.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T11:40:00-06:00",
+          "average": 3261738393.5999985,
+          "maximum": 3261747200.0,
+          "minimum": 3261718528.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T12:40:00-06:00",
+          "average": 3261777510.4000015,
+          "maximum": 3261816832.0,
+          "minimum": 3261747200.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T13:40:00-06:00",
+          "average": 3261819562.666668,
+          "maximum": 3261820928.0,
+          "minimum": 3261816832.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T14:40:00-06:00",
+          "average": 3261870148.2666664,
+          "maximum": 3261886464.0,
+          "minimum": 3261820928.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T15:40:00-06:00",
+          "average": 3261931383.466667,
+          "maximum": 3261943808.0,
+          "minimum": 3261886464.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T16:40:00-06:00",
+          "average": 3262045593.5999985,
+          "maximum": 3262070784.0,
+          "minimum": 3261943808.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T17:40:00-06:00",
+          "average": 3262099729.0666656,
+          "maximum": 3262136320.0,
+          "minimum": 3262070784.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T18:40:00-06:00",
+          "average": 3262139050.666668,
+          "maximum": 3262140416.0,
+          "minimum": 3262136320.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T19:40:00-06:00",
+          "average": 3262147242.666668,
+          "maximum": 3262148608.0,
+          "minimum": 3262144512.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T20:40:00-06:00",
+          "average": 3262154410.666668,
+          "maximum": 3262156800.0,
+          "minimum": 3262148608.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T21:40:00-06:00",
+          "average": 3262162602.666668,
+          "maximum": 3262164992.0,
+          "minimum": 3262156800.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T22:40:00-06:00",
+          "average": 3262170794.666668,
+          "maximum": 3262173184.0,
+          "minimum": 3262164992.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-17T23:40:00-06:00",
+          "average": 3262178986.666668,
+          "maximum": 3262181376.0,
+          "minimum": 3262173184.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T00:40:00-06:00",
+          "average": 3262187178.666668,
+          "maximum": 3262189568.0,
+          "minimum": 3262181376.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T01:40:00-06:00",
+          "average": 3262195712.0,
+          "maximum": 3262197760.0,
+          "minimum": 3262189568.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T02:40:00-06:00",
+          "average": 3262203562.666668,
+          "maximum": 3262205952.0,
+          "minimum": 3262197760.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T03:40:00-06:00",
+          "average": 3262212096.0,
+          "maximum": 3262214144.0,
+          "minimum": 3262205952.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T04:40:00-06:00",
+          "average": 3262219946.666668,
+          "maximum": 3262222336.0,
+          "minimum": 3262214144.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T05:40:00-06:00",
+          "average": 3262228138.666668,
+          "maximum": 3262230528.0,
+          "minimum": 3262222336.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T06:40:00-06:00",
+          "average": 3262236330.666668,
+          "maximum": 3262238720.0,
+          "minimum": 3262230528.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T07:40:00-06:00",
+          "average": 3262244522.666668,
+          "maximum": 3262246912.0,
+          "minimum": 3262238720.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T08:40:00-06:00",
+          "average": 3262252714.666668,
+          "maximum": 3262255104.0,
+          "minimum": 3262246912.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T09:40:00-06:00",
+          "average": 3262260770.133335,
+          "maximum": 3262263296.0,
+          "minimum": 3262255104.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T10:40:00-06:00",
+          "average": 3262268962.133335,
+          "maximum": 3262271488.0,
+          "minimum": 3262263296.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T11:40:00-06:00",
+          "average": 3262333132.799999,
+          "maximum": 3262349312.0,
+          "minimum": 3262185472.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T12:40:00-06:00",
+          "average": 3262385902.9333344,
+          "maximum": 3262410752.0,
+          "minimum": 3262349312.0,
+          "metric": "storage_used"
+        },
+        {
+          "timestamp": "2026-03-18T13:40:00-06:00",
+          "average": 3262410752.0,
+          "maximum": 3262410752.0,
+          "minimum": 3262410752.0,
+          "metric": "storage_used"
+        }
+      ]
+    },
+    "iops": {
+      "display_name": "Disk IOPS",
+      "data_points": 39,
+      "data": [
+        {
+          "timestamp": "2026-03-16T23:40:00-06:00",
+          "average": 5.532239406889399,
+          "maximum": 79.78466307771797,
+          "minimum": 0.1832752961562172,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T00:40:00-06:00",
+          "average": 4.19933687411123,
+          "maximum": 19.96744006491685,
+          "minimum": 0.18311664530305805,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T01:40:00-06:00",
+          "average": 3.873442232452426,
+          "maximum": 20.546917962305656,
+          "minimum": 0.18322034745240434,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T02:40:00-06:00",
+          "average": 2.551781173645417,
+          "maximum": 20.234186714613333,
+          "minimum": 0.18325392329990337,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T03:40:00-06:00",
+          "average": 2.3845523050389645,
+          "maximum": 11.53427459469867,
+          "minimum": 0.18329056553470857,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T04:40:00-06:00",
+          "average": 2.377716997770321,
+          "maximum": 11.181978507171607,
+          "minimum": 0.1832752961562172,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T05:40:00-06:00",
+          "average": 2.428440814802496,
+          "maximum": 12.316534170087925,
+          "minimum": 0.18331500183315003,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T06:40:00-06:00",
+          "average": 3.199091420512096,
+          "maximum": 22.721792438177378,
+          "minimum": 0.18329972838312977,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T07:40:00-06:00",
+          "average": 2.4029100246970647,
+          "maximum": 10.699108407632696,
+          "minimum": 0.1833211119258716,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T08:40:00-06:00",
+          "average": 2.422784933812657,
+          "maximum": 10.794487091687474,
+          "minimum": 0.18333333333333332,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T09:40:00-06:00",
+          "average": 2.383655640184706,
+          "maximum": 10.70590976246684,
+          "minimum": 0.1833211119258716,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T10:40:00-06:00",
+          "average": 2.3898185945178128,
+          "maximum": 10.534902477523824,
+          "minimum": 0.18315018315018314,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T11:40:00-06:00",
+          "average": 2.475304766803933,
+          "maximum": 11.147898181106791,
+          "minimum": 0.18333027782870284,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T12:40:00-06:00",
+          "average": 2.4397728810960078,
+          "maximum": 10.618877359686072,
+          "minimum": 0.18334555637042468,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T13:40:00-06:00",
+          "average": 2.3696410132762353,
+          "maximum": 10.92586575669471,
+          "minimum": 0.19991670137442732,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T14:40:00-06:00",
+          "average": 2.424643001794843,
+          "maximum": 11.448319435386338,
+          "minimum": 0.1999966667222213,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T15:40:00-06:00",
+          "average": 2.402759167753855,
+          "maximum": 10.880335863690078,
+          "minimum": 0.18328445747800587,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T16:40:00-06:00",
+          "average": 2.437996436971209,
+          "maximum": 11.351263450711036,
+          "minimum": 0.18338529249954152,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T17:40:00-06:00",
+          "average": 2.4493352145090492,
+          "maximum": 11.95173801696157,
+          "minimum": 0.18330278286952176,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T18:40:00-06:00",
+          "average": 2.3865709591936684,
+          "maximum": 11.233236115731504,
+          "minimum": 0.18334250045835626,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T19:40:00-06:00",
+          "average": 2.3654417316482963,
+          "maximum": 11.258419233251661,
+          "minimum": 0.18314713374735686,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T20:40:00-06:00",
+          "average": 2.406017059610191,
+          "maximum": 10.971943601571361,
+          "minimum": 0.18315018315018314,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T21:40:00-06:00",
+          "average": 2.3639004042233087,
+          "maximum": 10.416544478521384,
+          "minimum": 0.18329972838312977,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T22:40:00-06:00",
+          "average": 2.3866527814204805,
+          "maximum": 10.917025863736802,
+          "minimum": 0.1833119469395237,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-17T23:40:00-06:00",
+          "average": 2.424989859218913,
+          "maximum": 11.51701594070676,
+          "minimum": 0.18323866002565342,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T00:40:00-06:00",
+          "average": 2.410049785625887,
+          "maximum": 10.533252228296432,
+          "minimum": 0.1832752961562172,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T01:40:00-06:00",
+          "average": 2.4067742017364337,
+          "maximum": 10.483786775312595,
+          "minimum": 0.1833700073348003,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T02:40:00-06:00",
+          "average": 2.396415454761755,
+          "maximum": 10.717769068539205,
+          "minimum": 0.18322339929375708,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T03:40:00-06:00",
+          "average": 2.3566446413328896,
+          "maximum": 10.682271292712066,
+          "minimum": 0.18332722242591915,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T04:40:00-06:00",
+          "average": 2.376476987880897,
+          "maximum": 10.75348737462945,
+          "minimum": 0.1833211119258716,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T05:40:00-06:00",
+          "average": 2.41587077340534,
+          "maximum": 11.817369637114908,
+          "minimum": 0.1832661357502249,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T06:40:00-06:00",
+          "average": 2.3962167291544776,
+          "maximum": 11.23022245747409,
+          "minimum": 0.18336389398233038,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T07:40:00-06:00",
+          "average": 2.367518846642062,
+          "maximum": 11.260447320910824,
+          "minimum": 0.18330583745771467,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T08:40:00-06:00",
+          "average": 2.4079255936935686,
+          "maximum": 11.699563163708888,
+          "minimum": 0.18319593638104756,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T09:40:00-06:00",
+          "average": 2.3855349742135257,
+          "maximum": 10.63734345915184,
+          "minimum": 0.183202038539047,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T10:40:00-06:00",
+          "average": 2.3940625451321678,
+          "maximum": 10.952224285489802,
+          "minimum": 0.1832569762598917,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T11:40:00-06:00",
+          "average": 2.475580562148847,
+          "maximum": 11.966762848832843,
+          "minimum": 0.18333333333333332,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T12:40:00-06:00",
+          "average": 2.431420556017431,
+          "maximum": 11.416162524096036,
+          "minimum": 0.18334555637042468,
+          "metric": "iops"
+        },
+        {
+          "timestamp": "2026-03-18T13:40:00-06:00",
+          "average": 1.5997333777703717,
+          "maximum": 1.5997333777703717,
+          "minimum": 1.5997333777703717,
+          "metric": "iops"
+        }
+      ]
+    },
+    "read_iops": {
+      "display_name": "Disk Read IOPS",
+      "data_points": 39,
+      "data": [
+        {
+          "timestamp": "2026-03-16T23:40:00-06:00",
+          "average": 0.7704100222147885,
+          "maximum": 22.033700561676028,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T00:40:00-06:00",
+          "average": 0.29114978524232576,
+          "maximum": 1.3498425183728564,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T01:40:00-06:00",
+          "average": 0.2696956766478483,
+          "maximum": 1.8163942075355364,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T02:40:00-06:00",
+          "average": 0.309180996398652,
+          "maximum": 1.8999366687777075,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T03:40:00-06:00",
+          "average": 0.292195175477319,
+          "maximum": 1.8664800186648003,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T04:40:00-06:00",
+          "average": 0.27891030962830204,
+          "maximum": 1.633251670749796,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T05:40:00-06:00",
+          "average": 0.30639360954336564,
+          "maximum": 2.1833697228287137,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T06:40:00-06:00",
+          "average": 0.32357432062822955,
+          "maximum": 1.6496975554481679,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T07:40:00-06:00",
+          "average": 0.2888415942296802,
+          "maximum": 1.316556953587201,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T08:40:00-06:00",
+          "average": 0.32749442385180505,
+          "maximum": 1.3833102781620306,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T09:40:00-06:00",
+          "average": 0.2899777508471185,
+          "maximum": 1.3997900314952758,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T10:40:00-06:00",
+          "average": 0.30665990804963855,
+          "maximum": 1.400046668222274,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T11:40:00-06:00",
+          "average": 0.35085961786713077,
+          "maximum": 1.9164111451806425,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T12:40:00-06:00",
+          "average": 0.3066262482551015,
+          "maximum": 1.4330944842526245,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T13:40:00-06:00",
+          "average": 0.28776473106582673,
+          "maximum": 1.8502466995599414,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T14:40:00-06:00",
+          "average": 0.30192606928973914,
+          "maximum": 1.9499025048747562,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T15:40:00-06:00",
+          "average": 0.2761393261079204,
+          "maximum": 1.599786695107319,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T16:40:00-06:00",
+          "average": 0.2955581414123113,
+          "maximum": 2.1329067519829366,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T17:40:00-06:00",
+          "average": 0.32338499109356345,
+          "maximum": 2.486648865153538,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T18:40:00-06:00",
+          "average": 0.2900022175981563,
+          "maximum": 1.8000600020000668,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T19:40:00-06:00",
+          "average": 0.2908178841943423,
+          "maximum": 1.9332044530364643,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T20:40:00-06:00",
+          "average": 0.31329480452172664,
+          "maximum": 1.3995334888370543,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T21:40:00-06:00",
+          "average": 0.28609787712803925,
+          "maximum": 1.3501800240032005,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T22:40:00-06:00",
+          "average": 0.3013830871962599,
+          "maximum": 1.5998933404439704,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-17T23:40:00-06:00",
+          "average": 0.3481110687636565,
+          "maximum": 2.0013008455496073,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T00:40:00-06:00",
+          "average": 0.32027355215367925,
+          "maximum": 1.4167375035418437,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T01:40:00-06:00",
+          "average": 0.32497443371119294,
+          "maximum": 1.399393596108353,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T02:40:00-06:00",
+          "average": 0.3186004350154304,
+          "maximum": 1.3998600139986002,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T03:40:00-06:00",
+          "average": 0.27555283993308677,
+          "maximum": 1.399556807011113,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T04:40:00-06:00",
+          "average": 0.2785976857332212,
+          "maximum": 1.3667122237407914,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T05:40:00-06:00",
+          "average": 0.2991920867918486,
+          "maximum": 2.48465848452508,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T06:40:00-06:00",
+          "average": 0.27359836765687123,
+          "maximum": 1.6500825041252063,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T07:40:00-06:00",
+          "average": 0.2844498073251519,
+          "maximum": 1.8332416712497708,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T08:40:00-06:00",
+          "average": 0.31165562976063316,
+          "maximum": 2.48366448859848,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T09:40:00-06:00",
+          "average": 0.27528388226986755,
+          "maximum": 1.3504501500500166,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T10:40:00-06:00",
+          "average": 0.29055884319827374,
+          "maximum": 1.8164547469461896,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T11:40:00-06:00",
+          "average": 0.3230674947352553,
+          "maximum": 2.7004050607591137,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T12:40:00-06:00",
+          "average": 0.2905785707322509,
+          "maximum": 1.999966667222213,
+          "minimum": 0.0,
+          "metric": "read_iops"
+        },
+        {
+          "timestamp": "2026-03-18T13:40:00-06:00",
+          "average": 1.3997667055490752,
+          "maximum": 1.3997667055490752,
+          "minimum": 1.3997667055490752,
+          "metric": "read_iops"
+        }
+      ]
+    },
+    "write_iops": {
+      "display_name": "Disk Write IOPS",
+      "data_points": 39,
+      "data": [
+        {
+          "timestamp": "2026-03-16T23:40:00-06:00",
+          "average": 4.761829384674611,
+          "maximum": 57.75096251604194,
+          "minimum": 0.1832752961562172,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T00:40:00-06:00",
+          "average": 3.9081870888689045,
+          "maximum": 18.617597546543994,
+          "minimum": 0.18311664530305805,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T01:40:00-06:00",
+          "average": 3.6037465558045776,
+          "maximum": 18.730523754770118,
+          "minimum": 0.18322034745240434,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T02:40:00-06:00",
+          "average": 2.2426001772467647,
+          "maximum": 18.334250045835624,
+          "minimum": 0.18325392329990337,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T03:40:00-06:00",
+          "average": 2.0923571295616457,
+          "maximum": 9.66779457603387,
+          "minimum": 0.18329056553470857,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T04:40:00-06:00",
+          "average": 2.098806688142019,
+          "maximum": 9.54872683642181,
+          "minimum": 0.1832752961562172,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T05:40:00-06:00",
+          "average": 2.1220472052591304,
+          "maximum": 10.133164447259212,
+          "minimum": 0.18331500183315003,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T06:40:00-06:00",
+          "average": 2.8755170998838664,
+          "maximum": 21.07209488272921,
+          "minimum": 0.18329972838312977,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T07:40:00-06:00",
+          "average": 2.1140684304673845,
+          "maximum": 9.382551454045496,
+          "minimum": 0.1833211119258716,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T08:40:00-06:00",
+          "average": 2.095290509960852,
+          "maximum": 9.411176813525444,
+          "minimum": 0.18333333333333332,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T09:40:00-06:00",
+          "average": 2.0936778893375876,
+          "maximum": 9.306119730971565,
+          "minimum": 0.1833211119258716,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T10:40:00-06:00",
+          "average": 2.0831586864681744,
+          "maximum": 9.13485580930155,
+          "minimum": 0.18315018315018314,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T11:40:00-06:00",
+          "average": 2.1244451489368026,
+          "maximum": 9.231487035926149,
+          "minimum": 0.18333027782870284,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T12:40:00-06:00",
+          "average": 2.1331466328409063,
+          "maximum": 9.185782875433448,
+          "minimum": 0.18334555637042468,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T13:40:00-06:00",
+          "average": 2.0818762822104087,
+          "maximum": 9.07561905713477,
+          "minimum": 0.19991670137442732,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T14:40:00-06:00",
+          "average": 2.122716932505104,
+          "maximum": 9.498416930511581,
+          "minimum": 0.1999966667222213,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T15:40:00-06:00",
+          "average": 2.1266198416459345,
+          "maximum": 9.280549168582759,
+          "minimum": 0.18328445747800587,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T16:40:00-06:00",
+          "average": 2.1424382955588976,
+          "maximum": 9.2183566987281,
+          "minimum": 0.18338529249954152,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T17:40:00-06:00",
+          "average": 2.1259502234154857,
+          "maximum": 9.465089151808032,
+          "minimum": 0.18330278286952176,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T18:40:00-06:00",
+          "average": 2.096568741595512,
+          "maximum": 9.433176113731438,
+          "minimum": 0.18334250045835626,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T19:40:00-06:00",
+          "average": 2.074623847453954,
+          "maximum": 9.325214780215198,
+          "minimum": 0.18314713374735686,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T20:40:00-06:00",
+          "average": 2.0927222550884643,
+          "maximum": 9.572410112734307,
+          "minimum": 0.18315018315018314,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T21:40:00-06:00",
+          "average": 2.0778025270952694,
+          "maximum": 9.066364454518183,
+          "minimum": 0.18329972838312977,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T22:40:00-06:00",
+          "average": 2.0852696942242206,
+          "maximum": 9.317132523292832,
+          "minimum": 0.1833119469395237,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-17T23:40:00-06:00",
+          "average": 2.0768787904552566,
+          "maximum": 9.515715095157152,
+          "minimum": 0.18323866002565342,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T00:40:00-06:00",
+          "average": 2.089776233472208,
+          "maximum": 9.116514724754587,
+          "minimum": 0.1832752961562172,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T01:40:00-06:00",
+          "average": 2.081799768025241,
+          "maximum": 9.084393179204241,
+          "minimum": 0.1833700073348003,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T02:40:00-06:00",
+          "average": 2.0778150197463248,
+          "maximum": 9.317909054540605,
+          "minimum": 0.18322339929375708,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T03:40:00-06:00",
+          "average": 2.0810918013998028,
+          "maximum": 9.282714485700954,
+          "minimum": 0.18332722242591915,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T04:40:00-06:00",
+          "average": 2.0978793021476756,
+          "maximum": 9.38677515088866,
+          "minimum": 0.1833211119258716,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T05:40:00-06:00",
+          "average": 2.1166786866134917,
+          "maximum": 9.332711152589827,
+          "minimum": 0.1832661357502249,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T06:40:00-06:00",
+          "average": 2.122618361497606,
+          "maximum": 9.580139953348883,
+          "minimum": 0.18336389398233038,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T07:40:00-06:00",
+          "average": 2.08306903931691,
+          "maximum": 9.427205649661053,
+          "minimum": 0.18330583745771467,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T08:40:00-06:00",
+          "average": 2.0962699639329356,
+          "maximum": 9.215898675110408,
+          "minimum": 0.18319593638104756,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T09:40:00-06:00",
+          "average": 2.1102510919436583,
+          "maximum": 9.286893309101822,
+          "minimum": 0.183202038539047,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T10:40:00-06:00",
+          "average": 2.103503701933894,
+          "maximum": 9.135769538543611,
+          "minimum": 0.1832569762598917,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T11:40:00-06:00",
+          "average": 2.1525130674135915,
+          "maximum": 9.26635778807373,
+          "minimum": 0.18333333333333332,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T12:40:00-06:00",
+          "average": 2.14084198528518,
+          "maximum": 9.416195856873824,
+          "minimum": 0.18334555637042468,
+          "metric": "write_iops"
+        },
+        {
+          "timestamp": "2026-03-18T13:40:00-06:00",
+          "average": 0.19996667222129644,
+          "maximum": 0.19996667222129644,
+          "minimum": 0.19996667222129644,
+          "metric": "write_iops"
+        }
+      ]
+    },
+    "xact_commit": {
+      "display_name": "Transactions Committed Per Second",
+      "data_points": 39,
+      "data": [
+        {
+          "timestamp": "2026-03-16T23:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T00:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T01:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T02:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T03:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T04:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T05:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T06:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T07:40:00-06:00",
+          "average": 0.03333333333333333,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T08:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T09:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T10:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T11:40:00-06:00",
+          "average": 0.016666666666666666,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T12:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T13:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T14:40:00-06:00",
+          "average": 0.016666666666666666,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T15:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T16:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T17:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T18:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T19:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T20:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T21:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T22:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-17T23:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T00:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T01:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T02:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T03:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T04:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T05:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T06:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T07:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T08:40:00-06:00",
+          "average": 0.016666666666666666,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T09:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T10:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T11:40:00-06:00",
+          "average": 0.016666666666666666,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T12:40:00-06:00",
+          "average": 0.016666666666666666,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        },
+        {
+          "timestamp": "2026-03-18T13:40:00-06:00",
+          "average": 0.0,
+          "maximum": 0.0,
+          "minimum": 0.0,
+          "metric": "xact_commit"
+        }
+      ],
+      "note": "RDS does not expose xact_commit directly; using DatabaseConnections as proxy"
+    },
+    "blks_hit": {
+      "display_name": "Buffer Cache Blocks Hit",
+      "data_points": 0,
+      "data": [],
+      "note": "RDS exposes cache hit ratio rather than raw block counts"
+    },
+    "blks_read": {
+      "display_name": "Disk Blocks Read",
+      "data_points": 39,
+      "data": [
+        {
+          "timestamp": "2026-03-16T23:40:00-06:00",
+          "average": 0.028027169072283652,
+          "maximum": 0.19575927035483656,
+          "minimum": 6.665555740709882e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T00:40:00-06:00",
+          "average": 0.020489081887432963,
+          "maximum": 0.15671044736315753,
+          "minimum": 6.658897952388879e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T01:40:00-06:00",
+          "average": 0.020817336786246324,
+          "maximum": 0.1633612212926236,
+          "minimum": 6.664334149714266e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T02:40:00-06:00",
+          "average": 0.010360452935242105,
+          "maximum": 0.08722538920558723,
+          "minimum": 6.663779029087395e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T03:40:00-06:00",
+          "average": 0.01074705403158652,
+          "maximum": 0.08126218932839926,
+          "minimum": 6.664223118189997e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T04:40:00-06:00",
+          "average": 0.011625643698094207,
+          "maximum": 0.12142476165077672,
+          "minimum": 6.66566681664417e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T05:40:00-06:00",
+          "average": 0.009271337501438597,
+          "maximum": 0.0604110753638167,
+          "minimum": 6.666000066660001e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T06:40:00-06:00",
+          "average": 0.01441812092811019,
+          "maximum": 0.11142390724946695,
+          "minimum": 6.66611115740355e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T07:40:00-06:00",
+          "average": 0.013638702285370622,
+          "maximum": 0.17156429702475207,
+          "minimum": 6.666222251849876e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T08:40:00-06:00",
+          "average": 0.010903583983131546,
+          "maximum": 0.1013413313338332,
+          "minimum": 6.666777779629661e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T09:40:00-06:00",
+          "average": 0.01718338951116616,
+          "maximum": 0.49823321554770317,
+          "minimum": 8.33222237035062e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T10:40:00-06:00",
+          "average": 0.011754624720736233,
+          "maximum": 0.16876083188908145,
+          "minimum": 6.671447870974198e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T11:40:00-06:00",
+          "average": 0.01653907150640422,
+          "maximum": 0.17022978354689816,
+          "minimum": 6.667222268522376e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T12:40:00-06:00",
+          "average": 0.011164249212391127,
+          "maximum": 0.09137715571107223,
+          "minimum": 8.333888925928395e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T13:40:00-06:00",
+          "average": 0.011658008254938025,
+          "maximum": 0.08078467974466241,
+          "minimum": 8.33152816889674e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T14:40:00-06:00",
+          "average": 0.01829584652785534,
+          "maximum": 0.2423888759211711,
+          "minimum": 8.333055564814507e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T15:40:00-06:00",
+          "average": 0.012146412279403319,
+          "maximum": 0.14558786767769352,
+          "minimum": 6.664889362836577e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T16:40:00-06:00",
+          "average": 0.02533370566669161,
+          "maximum": 0.6075166666666667,
+          "minimum": 6.66855609089242e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T17:40:00-06:00",
+          "average": 0.01611316708725178,
+          "maximum": 0.16390573961735885,
+          "minimum": 6.665555740709882e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T18:40:00-06:00",
+          "average": 0.014239359856339898,
+          "maximum": 0.14197386840877274,
+          "minimum": 8.329723786359244e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T19:40:00-06:00",
+          "average": 0.02571682550985381,
+          "maximum": 0.3369494575813628,
+          "minimum": 6.66000666000666e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T20:40:00-06:00",
+          "average": 0.015078314289830945,
+          "maximum": 0.30193679578638577,
+          "minimum": 6.666666666666667e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T21:40:00-06:00",
+          "average": 0.01634336787081514,
+          "maximum": 0.3572809063645451,
+          "minimum": 6.666666666666667e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T22:40:00-06:00",
+          "average": 0.010839489924719592,
+          "maximum": 0.09441509308178198,
+          "minimum": 6.666666666666667e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-17T23:40:00-06:00",
+          "average": 0.012573657330506794,
+          "maximum": 0.103082305898034,
+          "minimum": 6.667000016667501e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T00:40:00-06:00",
+          "average": 0.011097233522203157,
+          "maximum": 0.10179830336161064,
+          "minimum": 6.671225337313831e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T01:40:00-06:00",
+          "average": 0.012104454522335668,
+          "maximum": 0.09615320510683689,
+          "minimum": 6.667000016667501e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T02:40:00-06:00",
+          "average": 0.01273658192824143,
+          "maximum": 0.09951326843579143,
+          "minimum": 6.667222268522376e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T03:40:00-06:00",
+          "average": 0.014812705236799157,
+          "maximum": 0.17114894042716375,
+          "minimum": 6.666555557407377e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T04:40:00-06:00",
+          "average": 0.00992245332620189,
+          "maximum": 0.087215213079782,
+          "minimum": 6.665555740709882e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T05:40:00-06:00",
+          "average": 0.009320944197264888,
+          "maximum": 0.07259207389252906,
+          "minimum": 6.665555740709882e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T06:40:00-06:00",
+          "average": 0.010222822283965831,
+          "maximum": 0.08207350612551045,
+          "minimum": 8.32764277743542e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T07:40:00-06:00",
+          "average": 0.014910880315680162,
+          "maximum": 0.20889925839513374,
+          "minimum": 6.66566681664417e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T08:40:00-06:00",
+          "average": 0.01344722294065686,
+          "maximum": 0.15901325110425868,
+          "minimum": 8.327088017320343e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T09:40:00-06:00",
+          "average": 0.01308438534561218,
+          "maximum": 0.13136362878901497,
+          "minimum": 6.668889629876625e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T10:40:00-06:00",
+          "average": 0.014186754870391012,
+          "maximum": 0.22505916469451018,
+          "minimum": 8.329862557267805e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T11:40:00-06:00",
+          "average": 0.013805647703016906,
+          "maximum": 0.11486666666666667,
+          "minimum": 6.666555557407377e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T12:40:00-06:00",
+          "average": 0.016230576845993012,
+          "maximum": 0.18624608411651003,
+          "minimum": 8.333333333333333e-05,
+          "metric": "blks_read"
+        },
+        {
+          "timestamp": "2026-03-18T13:40:00-06:00",
+          "average": 0.0009165291872885733,
+          "maximum": 0.0009165291872885733,
+          "minimum": 0.0009165291872885733,
+          "metric": "blks_read"
+        }
+      ],
+      "note": "RDS does not expose blks_read directly; using DiskQueueDepth as proxy"
+    }
+  }
+}

@@ -22,10 +22,10 @@ SYSTEM_PROMPT = (
 
 def _build_cpu_summary(analysis_id: str) -> dict:
     """Build a CPU utilization summary from metric data."""
-    schema = settings.full_schema
+    s = settings.schema_prefix
     rows = fetchall(
         f"SELECT timestamp, average, maximum, minimum "
-        f"FROM {schema}.metric_cpu_percent "
+        f"FROM {s}metric_cpu_percent "
         f"WHERE analysis_id = '{analysis_id}' "
         f"ORDER BY timestamp"
     )
@@ -103,11 +103,10 @@ def _escape(value: str) -> str:
     "/analyses/{analysis_id}/ai-analysis", response_model=AiAnalysisResponse
 )
 def generate_ai_analysis(analysis_id: str):
-    schema = settings.full_schema
-
     # Fetch analysis metadata
+    s = settings.schema_prefix
     rows = fetchall(
-        f"SELECT * FROM {schema}.analyses WHERE analysis_id = '{analysis_id}'"
+        f"SELECT * FROM {s}analyses WHERE analysis_id = '{analysis_id}'"
     )
     if not rows:
         raise HTTPException(status_code=404, detail="Analysis not found")
@@ -143,7 +142,7 @@ def generate_ai_analysis(analysis_id: str):
     # Save to analyses table
     escaped = _escape(ai_response)
     execute(
-        f"UPDATE {schema}.analyses "
+        f"UPDATE {s}analyses "
         f"SET ai_analysis = '{escaped}' "
         f"WHERE analysis_id = '{analysis_id}'"
     )

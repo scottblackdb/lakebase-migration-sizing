@@ -7,6 +7,8 @@ from backend.tables import DISPLAY_NAMES, METRIC_NAMES
 
 router = APIRouter()
 
+s = settings.schema_prefix
+
 
 @router.get(
     "/analyses/{analysis_id}/metrics/{metric_name}", response_model=MetricResponse
@@ -18,10 +20,9 @@ def get_metric(analysis_id: str, metric_name: str):
             detail=f"Invalid metric: {metric_name}. Valid: {METRIC_NAMES}",
         )
 
-    schema = settings.full_schema
     rows = fetchall(
         f"SELECT timestamp, average, maximum, minimum "
-        f"FROM {schema}.metric_{metric_name} "
+        f"FROM {s}metric_{metric_name} "
         f"WHERE analysis_id = '{analysis_id}' "
         f"ORDER BY timestamp"
     )
