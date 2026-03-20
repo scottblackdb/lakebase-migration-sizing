@@ -42,3 +42,7 @@ class UploadResponse(BaseModel):
 class AiAnalysisResponse(BaseModel):
     analysis_id: str
     ai_analysis: str
+
+
+class GroupNameUpdate(BaseModel):
+    group_name: str

@@ -35,6 +35,17 @@ export async function fetchGroupNames(): Promise<string[]> {
   return apiJson<string[]>("analyses/groups");
 }
 
+export async function updateAnalysisGroup(
+  analysisId: string,
+  groupName: string
+): Promise<AnalysisSummary> {
+  return apiJson<AnalysisSummary>(`analyses/${analysisId}/group`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ group_name: groupName.trim() }),
+  });
+}
+
 export async function fetchAnalysis(id: string): Promise<AnalysisSummary> {
   return apiJson<AnalysisSummary>(`analyses/${id}`);
 }

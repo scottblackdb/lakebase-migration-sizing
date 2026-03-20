@@ -21,7 +21,14 @@ export default function App() {
           </Typography>
         </Toolbar>
       </AppBar>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container
+        maxWidth={false}
+        sx={(theme) => ({
+          py: 4,
+          maxWidth: theme.breakpoints.values.lg * 1.2,
+          mx: "auto",
+        })}
+      >
         <Suspense
           fallback={
             <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>

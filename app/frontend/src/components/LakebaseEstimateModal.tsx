@@ -31,6 +31,26 @@ import {
 import type { MetricResponse } from "../types";
 import { downsampleChartData } from "../lib/chartDownsample";
 import { formatChartTimestamp } from "../lib/formatTimestamp";
+import {
+  LAKEBASE_CU_PER_CORE,
+  LAKEBASE_HOURS_PER_MONTH,
+  LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES,
+  computeLakebaseEstimate,
+  type LakebaseEstimatePoint,
+  lakebaseMonthlyCuCostUsd,
+  lakebaseStorageMonthlyCostUsd,
+  lakebaseStorageUsdPerGb,
+  lakebaseTotalMonthlyCostUsd,
+} from "../lib/lakebaseEstimate";
+
+/** Recharts series row: X-axis label + estimate point fields. */
+function estimatePointsToChartData(points: LakebaseEstimatePoint[]) {
+  const rows = points.map((p) => ({
+    ...p,
+    ts: formatChartTimestamp(p.timestamp),
+  }));
+  return downsampleChartData(rows);
+}
 
 interface Props {
   open: boolean;
@@ -40,12 +60,6 @@ interface Props {
   serverName: string;
   storageGb: number | null;
   skuName: string | null;
-}
-
-const CU_PER_CORE = 4;
-
-function isAwsSku(skuName: string | null): boolean {
-  return skuName != null && skuName.startsWith("db.");
 }
 
 export default function LakebaseEstimateModal({
@@ -60,93 +74,42 @@ export default function LakebaseEstimateModal({
   const [safetyMarginPct, setSafetyMarginPct] = useState<number>(15);
   const [scaleToZero, setScaleToZero] = useState<boolean>(true);
 
-  const SCALE_TO_ZERO_THRESHOLD = 0.3;
-
   const { displayData, peakCores, avgCores, safetyLineCores, monthlyCU, scaleToZeroPeriods, totalPeriods } =
     useMemo(() => {
-      let totalCores = 0;
-      let count = 0;
-      let peak = 0;
-      const margin = safetyMarginPct / 100;
-
-      const data = cpuMetric.data.map((d) => {
-        const avgUsed =
-          d.average != null ? (d.average / 100) * vcores : null;
-        const maxUsed =
-          d.maximum != null ? (d.maximum / 100) * vcores : null;
-        if (avgUsed != null) {
-          totalCores += avgUsed;
-          count++;
-        }
-        if (maxUsed != null && maxUsed > peak) {
-          peak = maxUsed;
-        }
-        // CU required per period = max cores used in that period × (1 + margin) × CU_PER_CORE
-        // If scale-to-zero is enabled and peak cores < threshold, CU = 0
-        const isIdle = scaleToZero && maxUsed != null && maxUsed < SCALE_TO_ZERO_THRESHOLD;
-        const cuRequired =
-          maxUsed != null
-            ? isIdle ? 0 : Math.ceil(maxUsed * (1 + margin) * CU_PER_CORE)
-            : null;
-        return {
-          ts: formatChartTimestamp(d.timestamp),
-          coresUsedAvg:
-            avgUsed != null ? Math.round(avgUsed * 100) / 100 : null,
-          coresUsedMax:
-            maxUsed != null ? Math.round(maxUsed * 100) / 100 : null,
-          lakebaseCU: cuRequired,
-        };
-      });
-
-      const avg = count > 0 ? totalCores / count : 0;
-      const safetyCores = peak * (1 + margin);
-
-      // Monthly CU: sum CU across all periods, scaled to a full month
-      let totalCU = 0;
-      let cuCount = 0;
-      let s2zPeriods = 0;
-      for (const d of data) {
-        if (d.lakebaseCU != null) {
-          totalCU += d.lakebaseCU;
-          cuCount++;
-          if (d.lakebaseCU === 0 && scaleToZero) {
-            s2zPeriods++;
-          }
-        }
-      }
-      // Average CU per period × periods per month
-      const avgCUPerPeriod = cuCount > 0 ? totalCU / cuCount : 0;
-      const hoursPerMonth = 730;
-      // Estimate interval hours from data span
-      let intervalHours = 1;
-      if (cpuMetric.data.length >= 2) {
-        const firstTs = new Date(cpuMetric.data[0].timestamp).getTime();
-        const lastTs = new Date(cpuMetric.data[cpuMetric.data.length - 1].timestamp).getTime();
-        intervalHours = (lastTs - firstTs) / (cpuMetric.data.length - 1) / 3600000;
-      }
-      const periodsPerMonth = hoursPerMonth / intervalHours;
-      const monthly = Math.round(avgCUPerPeriod * periodsPerMonth);
-
-      const display = downsampleChartData(data);
-
+      const { points, metrics } = computeLakebaseEstimate(
+        cpuMetric.data,
+        vcores,
+        { safetyMarginPct, scaleToZero }
+      );
       return {
-        displayData: display,
-        peakCores: Math.round(peak * 100) / 100,
-        avgCores: Math.round(avg * 100) / 100,
-        safetyLineCores: Math.round(safetyCores * 100) / 100,
-        monthlyCU: monthly,
-        scaleToZeroPeriods: s2zPeriods,
-        totalPeriods: cuCount,
+        displayData: estimatePointsToChartData(points),
+        peakCores: metrics.peakCores,
+        avgCores: metrics.avgCores,
+        safetyLineCores: metrics.safetyLineCores,
+        monthlyCU: metrics.monthlyCU,
+        scaleToZeroPeriods: metrics.scaleToZeroPeriods,
+        totalPeriods: metrics.totalPeriods,
       };
     }, [cpuMetric, vcores, safetyMarginPct, scaleToZero]);
+
+  const cuCostMonthly = lakebaseMonthlyCuCostUsd(monthlyCU);
+  const storageCostMonthly = lakebaseStorageMonthlyCostUsd(storageGb, skuName);
+  const totalMonthly = lakebaseTotalMonthlyCostUsd(monthlyCU, storageGb, skuName);
+  const storageRate = lakebaseStorageUsdPerGb(skuName);
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="lg"
+      maxWidth={false}
       fullWidth
-      PaperProps={{ sx: { borderRadius: 2 } }}
+      PaperProps={{
+        sx: (theme) => ({
+          borderRadius: 2,
+          maxWidth: theme.breakpoints.values.lg * 1.2,
+          width: "100%",
+        }),
+      }}
     >
       <DialogTitle
         sx={{
@@ -256,7 +219,7 @@ export default function LakebaseEstimateModal({
                 CU Cost Per Month
               </Typography>
               <Typography variant="h5" fontWeight={700} color="#00A972">
-                ${(monthlyCU * 0.111).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ${cuCostMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </Typography>
             </Paper>
           </Box>
@@ -274,11 +237,11 @@ export default function LakebaseEstimateModal({
               elevation={0}
             >
               <Typography variant="caption" sx={{ color: "#A0ACBE" }}>
-                {storageGb != null ? `${storageGb} GB x $${isAwsSku(skuName) ? "0.345" : "0.390"}/GB` : "Storage N/A"}
+                {storageGb != null ? `${storageGb} GB x $${storageRate}/GB` : "Storage N/A"}
               </Typography>
               <Typography variant="h5" fontWeight={700} color="#00A972">
                 {storageGb != null
-                  ? `$${(storageGb * (isAwsSku(skuName) ? 0.345 : 0.390)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                  ? `$${storageCostMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                   : "—"}
               </Typography>
             </Paper>
@@ -300,7 +263,7 @@ export default function LakebaseEstimateModal({
                 CU + Storage
               </Typography>
               <Typography variant="h5" fontWeight={700}>
-                ${((monthlyCU * 0.111) + (storageGb != null ? storageGb * (isAwsSku(skuName) ? 0.345 : 0.390) : 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ${totalMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </Typography>
             </Paper>
           </Box>
@@ -309,11 +272,11 @@ export default function LakebaseEstimateModal({
               Scale to Zero
             </Typography>
             <Paper
-              sx={{ p: 2, textAlign: "center", backgroundColor: scaleToZero ? "#F7F8FA" : "#F7F8FA" }}
+              sx={{ p: 2, textAlign: "center", backgroundColor: "#F7F8FA" }}
               elevation={0}
             >
               <Typography variant="caption" color="text.secondary">
-                Idle Periods ({"\u2264"} {SCALE_TO_ZERO_THRESHOLD} cores)
+                Idle Periods ({"\u2264"} {LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES} cores)
               </Typography>
               <Typography variant="h5" fontWeight={700} color={scaleToZero ? "#00A972" : "#1B3139"}>
                 {scaleToZero ? `${scaleToZeroPeriods} / ${totalPeriods}` : "Off"}
@@ -349,7 +312,7 @@ export default function LakebaseEstimateModal({
                 sx={{ color: "#00A972", "&.Mui-checked": { color: "#00A972" } }}
               />
             }
-            label={<Typography variant="body2">Scale to Zero ({"\u2264"} {SCALE_TO_ZERO_THRESHOLD} cores = 0 CU)</Typography>}
+            label={<Typography variant="body2">Scale to Zero ({"\u2264"} {LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES} cores = 0 CU)</Typography>}
           />
           <Typography variant="body2" color="text.secondary">
             Applied on top of peak CPU cores per period.
@@ -450,7 +413,6 @@ export default function LakebaseEstimateModal({
                 dot={false}
                 strokeWidth={2.5}
               />
-              {/* Reference lines */}
               <ReferenceLine
                 yAxisId="cores"
                 y={peakCores}
@@ -492,13 +454,13 @@ export default function LakebaseEstimateModal({
             Calculation Breakdown
           </Typography>
           <Typography variant="body2" sx={{ fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", lineHeight: 2 }}>
-            Per-period CU = peak cores used x (1 + {safetyMarginPct}%) x {CU_PER_CORE} CU/core
+            Per-period CU = peak cores used x (1 + {safetyMarginPct}%) x {LAKEBASE_CU_PER_CORE} CU/core
             <br />
             Peak CPU cores (overall) = {peakCores} cores (max CPU% x {vcores} vCores)
             <br />
             Peak with safety margin = {peakCores} x (1 + {safetyMarginPct}%) = {safetyLineCores} cores
             <br />
-            Avg CU/period projected over 730 hrs/month ={" "}
+            Avg CU/period projected over {LAKEBASE_HOURS_PER_MONTH} hrs/month ={" "}
             <strong>{monthlyCU.toLocaleString()} CU/month</strong>
           </Typography>
         </Paper>
