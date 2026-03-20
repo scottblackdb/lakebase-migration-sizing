@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, type MouseEvent } from "react";
+import { useState, useEffect, useCallback, useMemo, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Paper,
@@ -17,15 +17,21 @@ import {
   TextField,
   InputAdornment,
   Autocomplete,
+  Checkbox,
+  Button,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import DnsIcon from "@mui/icons-material/Dns";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
+import StorageIcon from "@mui/icons-material/Storage";
 import { fetchAnalyses, fetchGroupNames, updateAnalysisGroup } from "../api";
 import type { AnalysisSummary } from "../types";
 import UploadForm from "./UploadForm";
+import BatchLakebaseEstimateModal from "./BatchLakebaseEstimateModal";
+
+const MAX_BATCH_SELECTION = 20;
 
 export default function AnalysisList() {
   const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
@@ -36,6 +42,8 @@ export default function AnalysisList() {
   const [groupOptions, setGroupOptions] = useState<string[]>([]);
   const [savingGroup, setSavingGroup] = useState(false);
   const [groupEditError, setGroupEditError] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchModalOpen, setBatchModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const filteredAnalyses = analyses.filter((a) => {
@@ -45,6 +53,60 @@ export default function AnalysisList() {
     const server = (a.server_name ?? "").toLowerCase();
     return group.includes(q) || server.includes(q);
   });
+
+  const visibleCapSlice = useMemo(
+    () => filteredAnalyses.slice(0, MAX_BATCH_SELECTION),
+    [filteredAnalyses]
+  );
+  const visibleCapIds = useMemo(
+    () => visibleCapSlice.map((a) => a.analysis_id),
+    [visibleCapSlice]
+  );
+  const allVisibleCapSelected =
+    visibleCapIds.length > 0 &&
+    visibleCapIds.every((id) => selectedIds.has(id));
+  const someVisibleCapSelected = visibleCapIds.some((id) =>
+    selectedIds.has(id)
+  );
+
+  const selectedAnalysesForBatch = useMemo(() => {
+    const byId = new Map(analyses.map((a) => [a.analysis_id, a]));
+    const rows = [...selectedIds]
+      .map((id) => byId.get(id))
+      .filter((a): a is AnalysisSummary => a != null);
+    rows.sort((a, b) =>
+      a.server_name.localeCompare(b.server_name, undefined, {
+        sensitivity: "base",
+      })
+    );
+    return rows;
+  }, [analyses, selectedIds]);
+
+  const toggleRowSelected = (analysisId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(analysisId)) {
+        next.delete(analysisId);
+        return next;
+      }
+      if (next.size >= MAX_BATCH_SELECTION) {
+        return prev;
+      }
+      next.add(analysisId);
+      return next;
+    });
+  };
+
+  const toggleSelectVisibleCap = () => {
+    setSelectedIds((prev) => {
+      if (allVisibleCapSelected) {
+        const next = new Set(prev);
+        for (const id of visibleCapIds) next.delete(id);
+        return next;
+      }
+      return new Set(visibleCapIds);
+    });
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -127,20 +189,43 @@ export default function AnalysisList() {
         </Paper>
       ) : (
         <>
-          <TextField
-            placeholder="Search group or server name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            size="small"
-            sx={{ mb: 2, minWidth: 320 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon color="action" />
-                </InputAdornment>
-              ),
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: 2,
+              mb: 2,
             }}
-          />
+          >
+            <TextField
+              placeholder="Search group or server name..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              size="small"
+              sx={{ minWidth: 320 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {selectedIds.size > 0 && (
+              <Button
+                variant="contained"
+                startIcon={<StorageIcon />}
+                onClick={() => setBatchModalOpen(true)}
+                sx={{
+                  backgroundColor: "#143D4A",
+                  "&:hover": { backgroundColor: "#1B3139" },
+                }}
+              >
+                Lakebase estimates ({selectedIds.size})
+              </Button>
+            )}
+          </Box>
           {filteredAnalyses.length === 0 ? (
             <Paper sx={{ p: 4, textAlign: "center" }}>
               <Typography color="text.secondary">
@@ -152,6 +237,23 @@ export default function AnalysisList() {
               <Table>
                 <TableHead>
                   <TableRow>
+                    <TableCell padding="checkbox" sx={{ width: 48 }}>
+                      <Tooltip
+                        title={`Select up to ${MAX_BATCH_SELECTION} servers in the current list (first ${MAX_BATCH_SELECTION} rows)`}
+                      >
+                        <Checkbox
+                          indeterminate={
+                            someVisibleCapSelected && !allVisibleCapSelected
+                          }
+                          checked={allVisibleCapSelected}
+                          onChange={() => toggleSelectVisibleCap()}
+                          onClick={(e) => e.stopPropagation()}
+                          inputProps={{
+                            "aria-label": "Select all visible (up to 20)",
+                          }}
+                        />
+                      </Tooltip>
+                    </TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Server Name</TableCell>
                     <TableCell sx={{ fontWeight: 700, minWidth: 280 }}>
                       Group Name
@@ -173,6 +275,22 @@ export default function AnalysisList() {
                         sx={{ cursor: "pointer" }}
                         onClick={() => navigate(`/analysis/${a.analysis_id}`)}
                       >
+                        <TableCell
+                          padding="checkbox"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Checkbox
+                            checked={selectedIds.has(a.analysis_id)}
+                            onChange={() => toggleRowSelected(a.analysis_id)}
+                            disabled={
+                              !selectedIds.has(a.analysis_id) &&
+                              selectedIds.size >= MAX_BATCH_SELECTION
+                            }
+                            inputProps={{
+                              "aria-label": `Select ${a.server_name}`,
+                            }}
+                          />
+                        </TableCell>
                         <TableCell>
                           <Typography variant="body2" fontWeight={600}>
                             {a.server_name}
@@ -334,6 +452,12 @@ export default function AnalysisList() {
           )}
         </>
       )}
+
+      <BatchLakebaseEstimateModal
+        open={batchModalOpen}
+        onClose={() => setBatchModalOpen(false)}
+        analyses={selectedAnalysesForBatch}
+      />
     </>
   );
 }

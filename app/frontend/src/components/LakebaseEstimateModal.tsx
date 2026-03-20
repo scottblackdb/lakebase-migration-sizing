@@ -35,7 +35,9 @@ import {
   LAKEBASE_CU_PER_CORE,
   LAKEBASE_HOURS_PER_MONTH,
   LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES,
-  computeLakebaseEstimate,
+  LAKEBASE_ESTIMATE_DEFAULT_SAFETY_MARGIN_PCT,
+  LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO,
+  tryComputeLakebaseEstimateFromMetrics,
   type LakebaseEstimatePoint,
   lakebaseMonthlyCuCostUsd,
   lakebaseStorageMonthlyCostUsd,
@@ -71,16 +73,32 @@ export default function LakebaseEstimateModal({
   storageGb,
   skuName,
 }: Props) {
-  const [safetyMarginPct, setSafetyMarginPct] = useState<number>(15);
-  const [scaleToZero, setScaleToZero] = useState<boolean>(true);
+  const [safetyMarginPct, setSafetyMarginPct] = useState<number>(
+    LAKEBASE_ESTIMATE_DEFAULT_SAFETY_MARGIN_PCT
+  );
+  const [scaleToZero, setScaleToZero] = useState<boolean>(
+    LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO
+  );
 
   const { displayData, peakCores, avgCores, safetyLineCores, monthlyCU, scaleToZeroPeriods, totalPeriods } =
     useMemo(() => {
-      const { points, metrics } = computeLakebaseEstimate(
-        cpuMetric.data,
+      const t = tryComputeLakebaseEstimateFromMetrics(
+        [cpuMetric],
         vcores,
         { safetyMarginPct, scaleToZero }
       );
+      if (!t.ok) {
+        return {
+          displayData: estimatePointsToChartData([]),
+          peakCores: 0,
+          avgCores: 0,
+          safetyLineCores: 0,
+          monthlyCU: 0,
+          scaleToZeroPeriods: 0,
+          totalPeriods: 0,
+        };
+      }
+      const { points, metrics } = t.result;
       return {
         displayData: estimatePointsToChartData(points),
         peakCores: metrics.peakCores,
