@@ -10,15 +10,12 @@ import {
   Legend,
 } from "recharts";
 import type { MetricResponse } from "../types";
+import { downsampleChartData } from "../lib/chartDownsample";
+import { formatChartTimestamp } from "../lib/formatTimestamp";
 
 interface Props {
   blocksHitMetric: MetricResponse;
   blocksReadMetric: MetricResponse;
-}
-
-function formatTimestamp(ts: string): string {
-  const d = new Date(ts);
-  return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 export default function CacheHitRatioChart({
@@ -54,7 +51,7 @@ export default function CacheHitRatioChart({
           : null;
 
       return {
-        ts: formatTimestamp(hitPoint.timestamp),
+        ts: formatChartTimestamp(hitPoint.timestamp),
         averageRatio:
           averageRatio != null ? Math.round(averageRatio * 100) / 100 : null,
         maximumRatio:
@@ -65,10 +62,7 @@ export default function CacheHitRatioChart({
     })
     .filter((d): d is NonNullable<typeof d> => d !== null);
 
-  const maxPoints = 200;
-  const step = Math.max(1, Math.floor(chartData.length / maxPoints));
-  const displayData =
-    step > 1 ? chartData.filter((_, i) => i % step === 0) : chartData;
+  const displayData = downsampleChartData(chartData);
 
   if (chartData.length === 0) {
     return (

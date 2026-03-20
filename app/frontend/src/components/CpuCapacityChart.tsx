@@ -12,15 +12,12 @@ import {
   ReferenceLine,
 } from "recharts";
 import type { MetricResponse } from "../types";
+import { downsampleChartData } from "../lib/chartDownsample";
+import { formatChartTimestamp } from "../lib/formatTimestamp";
 
 interface Props {
   cpuMetric: MetricResponse;
   vcores: number;
-}
-
-function formatTimestamp(ts: string): string {
-  const d = new Date(ts);
-  return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 export default function CpuCapacityChart({ cpuMetric, vcores }: Props) {
@@ -32,7 +29,7 @@ export default function CpuCapacityChart({ cpuMetric, vcores }: Props) {
       peakCpuPercent = d.maximum;
     }
     return {
-      ts: formatTimestamp(d.timestamp),
+      ts: formatChartTimestamp(d.timestamp),
       vcoresUsedAvg: avgUsed != null ? Math.round(avgUsed * 100) / 100 : null,
       vcoresUsedMax: maxUsed != null ? Math.round(maxUsed * 100) / 100 : null,
       totalVcores: vcores,
@@ -41,10 +38,7 @@ export default function CpuCapacityChart({ cpuMetric, vcores }: Props) {
   });
   const peakVcores = Math.round((peakCpuPercent / 100) * vcores * 100) / 100;
 
-  const maxPoints = 200;
-  const step = Math.max(1, Math.floor(chartData.length / maxPoints));
-  const displayData =
-    step > 1 ? chartData.filter((_, i) => i % step === 0) : chartData;
+  const displayData = downsampleChartData(chartData);
 
   return (
     <Paper sx={{ p: 2.5, mb: 3 }}>

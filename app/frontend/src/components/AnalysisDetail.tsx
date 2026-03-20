@@ -144,6 +144,9 @@ export default function AnalysisDetail() {
   });
 
   const hasAiAnalysis = !!analysis.ai_analysis;
+  const cpuMetric = metrics.find((m) => m.metric_name === "cpu_percent");
+  const hasCpuChartData =
+    Boolean(analysis.vcores && cpuMetric && cpuMetric.data_points > 0);
   const blocksHitMetric = metrics.find((m) => m.metric_name === "blks_hit");
   const blocksReadMetric = metrics.find((m) => m.metric_name === "blks_read");
   const hasCacheMetricDefinitions = !!blocksHitMetric && !!blocksReadMetric;
@@ -182,7 +185,7 @@ export default function AnalysisDetail() {
               {generating ? "Analyzing..." : "Generate Migration Analysis"}
             </Button>
           )}
-          {analysis.vcores && metrics.find((m) => m.metric_name === "cpu_percent" && m.data_points > 0) && (
+          {hasCpuChartData && (
             <Button
               variant="outlined"
               startIcon={<StorageIcon />}
@@ -223,12 +226,9 @@ export default function AnalysisDetail() {
 
       <Divider sx={{ mb: 3 }} />
 
-      {analysis.vcores && (() => {
-        const cpuMetric = metrics.find((m) => m.metric_name === "cpu_percent");
-        return cpuMetric && cpuMetric.data_points > 0 ? (
-          <CpuCapacityChart cpuMetric={cpuMetric} vcores={analysis.vcores} />
-        ) : null;
-      })()}
+      {hasCpuChartData && cpuMetric && analysis.vcores && (
+        <CpuCapacityChart cpuMetric={cpuMetric} vcores={analysis.vcores} />
+      )}
 
       {hasCacheHitMetrics && blocksHitMetric && blocksReadMetric && (
         <CacheHitRatioChart
@@ -319,21 +319,17 @@ export default function AnalysisDetail() {
         </DialogActions>
       </Dialog>
 
-      {/* Lakebase Estimate Modal */}
-      {analysis.vcores && (() => {
-        const cpuMetric = metrics.find((m) => m.metric_name === "cpu_percent" && m.data_points > 0);
-        return cpuMetric ? (
-          <LakebaseEstimateModal
-            open={lakebaseModalOpen}
-            onClose={() => setLakebaseModalOpen(false)}
-            cpuMetric={cpuMetric}
-            vcores={analysis.vcores}
-            serverName={analysis.server_name}
-            storageGb={analysis.storage_size_gb}
-            skuName={analysis.sku_name}
-          />
-        ) : null;
-      })()}
+      {hasCpuChartData && cpuMetric && analysis.vcores && (
+        <LakebaseEstimateModal
+          open={lakebaseModalOpen}
+          onClose={() => setLakebaseModalOpen(false)}
+          cpuMetric={cpuMetric}
+          vcores={analysis.vcores}
+          serverName={analysis.server_name}
+          storageGb={analysis.storage_size_gb}
+          skuName={analysis.sku_name}
+        />
+      )}
     </>
   );
 }

@@ -2,9 +2,13 @@
 Table definitions for Lakebase Migration Sizing.
 Canonical DDL (for reference / manual runs): see schema.sql in this directory.
 """
+import logging
+
 import psycopg2
 
 from backend.config import settings
+
+logger = logging.getLogger(__name__)
 from backend.db import execute
 
 METRIC_NAMES = [
@@ -55,8 +59,13 @@ def ensure_tables() -> None:
                 f"GRANT ALL ON TABLES TO {settings.PG_USER}"
             )
         conn.commit()
-    except Exception:
-        # Schema may already exist with correct permissions — proceed
+    except Exception as e:
+        # Schema may already exist; grants may already be applied — proceed to CREATE TABLE
+        logger.debug(
+            "ensure_tables: schema bootstrap skipped (%s)",
+            e,
+            exc_info=True,
+        )
         conn.rollback()
     finally:
         conn.close()

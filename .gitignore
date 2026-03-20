@@ -1,7 +1,7 @@
 # Dependencies
 app/frontend/node_modules/
 
-# Build output
+# Build output (required for Databricks Apps: run `bun run build` in app/frontend and deploy dist/)
 app/frontend/build/
 app/frontend/dist/
 

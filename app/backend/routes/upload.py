@@ -12,6 +12,7 @@ from backend.tables import METRIC_NAMES
 router = APIRouter()
 
 BATCH_SIZE = 500
+s = settings.schema_prefix
 
 
 def _escape(value: str) -> str:
@@ -30,7 +31,7 @@ def _insert_metric_batch(
     if not rows:
         return
 
-    table = f"{settings.schema_prefix}metric_{metric_name}"
+    table = f"{s}metric_{metric_name}"
 
     for i in range(0, len(rows), BATCH_SIZE):
         batch = rows[i : i + BATCH_SIZE]
@@ -84,7 +85,6 @@ async def upload_metrics(file: UploadFile, group_name: str = Form("")):
     normalized_group = group_name.strip()
     group_name_sql = f"'{_escape(normalized_group)}'" if normalized_group else "NULL"
 
-    s = settings.schema_prefix
     execute(
         f"INSERT INTO {s}analyses "
         f"(analysis_id, group_name, server_name, granularity, "

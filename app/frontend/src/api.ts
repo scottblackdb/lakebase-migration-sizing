@@ -1,27 +1,46 @@
 import type { AnalysisSummary, MetricResponse, UploadResponse } from "./types";
 
-export async function fetchAnalyses(): Promise<AnalysisSummary[]> {
-  const res = await fetch("/api/analyses");
-  if (!res.ok) throw new Error("Failed to fetch analyses");
+/** Resolves /api paths when the SPA uses a non-root Vite `base` (e.g. Databricks Apps). */
+function apiUrl(path: string): string {
+  const p = path.replace(/^\//, "");
+  const base = import.meta.env.BASE_URL ?? "/";
+  const segment = `api/${p}`;
+  if (base === "/" || base === "./") return `/${segment}`;
+  return `${String(base).replace(/\/$/, "")}/${segment}`;
+}
+
+async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(apiUrl(path), init);
+  if (!res.ok) {
+    let message = `Request failed (${res.status})`;
+    try {
+      const err = (await res.json()) as { detail?: string | unknown };
+      if (err.detail != null) {
+        message =
+          typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail);
+      }
+    } catch {
+      /* non-JSON body */
+    }
+    throw new Error(message);
+  }
   return res.json();
+}
+
+export async function fetchAnalyses(): Promise<AnalysisSummary[]> {
+  return apiJson<AnalysisSummary[]>("analyses");
 }
 
 export async function fetchGroupNames(): Promise<string[]> {
-  const res = await fetch("/api/analyses/groups");
-  if (!res.ok) throw new Error("Failed to fetch groups");
-  return res.json();
+  return apiJson<string[]>("analyses/groups");
 }
 
 export async function fetchAnalysis(id: string): Promise<AnalysisSummary> {
-  const res = await fetch(`/api/analyses/${id}`);
-  if (!res.ok) throw new Error("Analysis not found");
-  return res.json();
+  return apiJson<AnalysisSummary>(`analyses/${id}`);
 }
 
 export async function fetchAllMetrics(id: string): Promise<MetricResponse[]> {
-  const res = await fetch(`/api/analyses/${id}/metrics`);
-  if (!res.ok) throw new Error("Failed to fetch metrics");
-  return res.json();
+  return apiJson<MetricResponse[]>(`analyses/${id}/metrics`);
 }
 
 export async function uploadFile(
@@ -31,23 +50,14 @@ export async function uploadFile(
   const form = new FormData();
   form.append("file", file);
   form.append("group_name", groupName);
-  const res = await fetch("/api/upload", { method: "POST", body: form });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.detail || "Upload failed");
-  }
-  return res.json();
+  return apiJson<UploadResponse>("upload", { method: "POST", body: form });
 }
 
 export async function generateAiAnalysis(
   id: string
 ): Promise<{ analysis_id: string; ai_analysis: string }> {
-  const res = await fetch(`/api/analyses/${id}/ai-analysis`, {
-    method: "POST",
-  });
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.detail || "AI analysis failed");
-  }
-  return res.json();
+  return apiJson<{ analysis_id: string; ai_analysis: string }>(
+    `analyses/${id}/ai-analysis`,
+    { method: "POST" }
+  );
 }

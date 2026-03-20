@@ -29,6 +29,8 @@ import {
   ReferenceLine,
 } from "recharts";
 import type { MetricResponse } from "../types";
+import { downsampleChartData } from "../lib/chartDownsample";
+import { formatChartTimestamp } from "../lib/formatTimestamp";
 
 interface Props {
   open: boolean;
@@ -41,11 +43,6 @@ interface Props {
 }
 
 const CU_PER_CORE = 4;
-
-function formatTimestamp(ts: string): string {
-  const d = new Date(ts);
-  return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
 
 function isAwsSku(skuName: string | null): boolean {
   return skuName != null && skuName.startsWith("db.");
@@ -92,7 +89,7 @@ export default function LakebaseEstimateModal({
             ? isIdle ? 0 : Math.ceil(maxUsed * (1 + margin) * CU_PER_CORE)
             : null;
         return {
-          ts: formatTimestamp(d.timestamp),
+          ts: formatChartTimestamp(d.timestamp),
           coresUsedAvg:
             avgUsed != null ? Math.round(avgUsed * 100) / 100 : null,
           coresUsedMax:
@@ -130,10 +127,7 @@ export default function LakebaseEstimateModal({
       const periodsPerMonth = hoursPerMonth / intervalHours;
       const monthly = Math.round(avgCUPerPeriod * periodsPerMonth);
 
-      const maxPoints = 200;
-      const step = Math.max(1, Math.floor(data.length / maxPoints));
-      const display =
-        step > 1 ? data.filter((_, i) => i % step === 0) : data;
+      const display = downsampleChartData(data);
 
       return {
         displayData: display,

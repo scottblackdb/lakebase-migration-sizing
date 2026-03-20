@@ -10,14 +10,11 @@ import {
   Legend,
 } from "recharts";
 import type { MetricResponse } from "../types";
+import { downsampleChartData } from "../lib/chartDownsample";
+import { formatChartTimestamp } from "../lib/formatTimestamp";
 
 interface Props {
   metric: MetricResponse;
-}
-
-function formatTimestamp(ts: string): string {
-  const d = new Date(ts);
-  return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
 function formatStorageBytes(bytes: number): string {
@@ -34,16 +31,13 @@ export default function MetricChart({ metric }: Props) {
   const isStorage = metric.metric_name === "storage_used";
 
   const chartData = metric.data.map((d) => ({
-    ts: formatTimestamp(d.timestamp),
+    ts: formatChartTimestamp(d.timestamp),
     average: d.average,
     maximum: d.maximum,
     minimum: d.minimum,
   }));
 
-  const maxPoints = 200;
-  const step = Math.max(1, Math.floor(chartData.length / maxPoints));
-  const displayData =
-    step > 1 ? chartData.filter((_, i) => i % step === 0) : chartData;
+  const displayData = downsampleChartData(chartData);
 
   return (
     <Paper sx={{ p: 2.5 }}>
