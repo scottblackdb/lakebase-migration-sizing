@@ -28,6 +28,7 @@ import { fetchAllMetrics } from "../api";
 import {
   LAKEBASE_ESTIMATE_DEFAULT_SAFETY_MARGIN_PCT,
   LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO,
+  LAKEBASE_CU_HIGH_USAGE_THRESHOLD,
   tryComputeLakebaseEstimateFromMetrics,
   lakebaseMonthlyCuCostUsd,
   lakebaseTotalMonthlyCostUsd,
@@ -47,6 +48,7 @@ type RowResult =
       monthlyCU: number;
       computeUsd: number;
       totalUsd: number;
+      usedPeakCuConstantSizing: boolean;
     }
   | {
       analysisId: string;
@@ -169,6 +171,7 @@ export default function BatchLakebaseEstimateModal({
         monthlyCU,
         computeUsd,
         totalUsd,
+        usedPeakCuConstantSizing: computed.result.metrics.usedPeakCuConstantSizing,
       };
     });
   }, [analyses, metricsById, safetyMarginPct, autoscaleById]);
@@ -188,6 +191,11 @@ export default function BatchLakebaseEstimateModal({
   }, [rows]);
 
   const hasResults = Object.keys(metricsById).length > 0;
+
+  const anyPeakCuSizing = useMemo(
+    () => rows.some((r) => r.ok && r.usedPeakCuConstantSizing),
+    [rows]
+  );
 
   return (
     <Dialog
@@ -226,8 +234,9 @@ export default function BatchLakebaseEstimateModal({
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {analyses.length} server{analyses.length !== 1 ? "s" : ""} selected.
           Estimates use the same formula as the per-server Lakebase estimate
-          dialog. Per row, &quot;Scale to zero&quot; matches that dialog&apos;s
-          scale-to-zero option (idle periods → 0 CU when enabled).
+          dialog. Per row, &quot;Scale to zero&quot; applies when no interval needs{" "}
+          {LAKEBASE_CU_HIGH_USAGE_THRESHOLD}+ CUs; otherwise scale-to-zero is ignored and monthly
+          CU uses peak interval CU × intervals/month.
         </Typography>
 
         <Box
@@ -271,6 +280,14 @@ export default function BatchLakebaseEstimateModal({
         {fetchError && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {fetchError}
+          </Alert>
+        )}
+
+        {hasResults && anyPeakCuSizing && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            One or more servers hit ≥{LAKEBASE_CU_HIGH_USAGE_THRESHOLD} Lakebase CUs in at least one
+            interval (with your safety margin). Those rows use peak CU constant sizing; scale to zero
+            is not applied for them.
           </Alert>
         )}
 
@@ -352,11 +369,18 @@ export default function BatchLakebaseEstimateModal({
                         <Typography variant="caption" color="error">
                           {row.error}
                         </Typography>
-                      ) : (
-                        <Typography variant="caption" color="success.main">
-                          OK
-                        </Typography>
-                      )}
+                      ) : row?.ok ? (
+                        <Box>
+                          <Typography variant="caption" color="success.main" display="block">
+                            OK
+                          </Typography>
+                          {row.usedPeakCuConstantSizing && (
+                            <Typography variant="caption" color="text.secondary" display="block">
+                              Peak ≥{LAKEBASE_CU_HIGH_USAGE_THRESHOLD} CU
+                            </Typography>
+                          )}
+                        </Box>
+                      ) : null}
                     </TableCell>
                   </TableRow>
                 );

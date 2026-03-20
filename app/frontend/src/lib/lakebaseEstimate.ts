@@ -13,6 +13,13 @@ export const LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO = true;
 /** Lakebase compute units per physical core used in the estimate formula. */
 export const LAKEBASE_CU_PER_CORE = 4;
 
+/**
+ * If any interval’s required CU (from peak CPU% × vCores, with safety margin)
+ * reaches this level, scale-to-zero is not applied and monthly CU uses the
+ * **peak** interval CU × periods/month (provisioned-style sizing).
+ */
+export const LAKEBASE_CU_HIGH_USAGE_THRESHOLD = 32;
+
 /** Cores below this (when scale-to-zero is on) map to 0 CU for that period. */
 export const LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES = 0.3;
 
@@ -64,6 +71,10 @@ export interface LakebaseEstimateMetrics {
   intervalHours: number;
   periodsPerMonth: number;
   avgCUPerPeriod: number;
+  /** True when any interval hit {@link LAKEBASE_CU_HIGH_USAGE_THRESHOLD}+ CUs; S2Z ignored; monthly from peak interval CU. */
+  usedPeakCuConstantSizing: boolean;
+  /** Largest per-interval Lakebase CU in the final model (after rules). */
+  peakPeriodLakebaseCU: number;
 }
 
 export interface LakebaseEstimateResult {
@@ -81,7 +92,16 @@ export function computeLakebaseEstimate(
 ): LakebaseEstimateResult {
   const { safetyMarginPct, scaleToZero } = options;
   const margin = safetyMarginPct / 100;
-  const threshold = LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES;
+  const idleThresholdCores = LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES;
+
+  const anyPeriodRequiresHighCu = cpuData.some((d) => {
+    if (d.maximum == null) return false;
+    const maxUsed = (d.maximum / 100) * vcores;
+    const cu = Math.ceil(maxUsed * (1 + margin) * LAKEBASE_CU_PER_CORE);
+    return cu >= LAKEBASE_CU_HIGH_USAGE_THRESHOLD;
+  });
+
+  const effectiveScaleToZero = anyPeriodRequiresHighCu ? false : scaleToZero;
 
   let totalCores = 0;
   let count = 0;
@@ -102,7 +122,7 @@ export function computeLakebaseEstimate(
     }
 
     const isIdle =
-      scaleToZero && maxUsed != null && maxUsed < threshold;
+      effectiveScaleToZero && maxUsed != null && maxUsed < idleThresholdCores;
     const cuRequired =
       maxUsed != null
         ? isIdle
@@ -130,13 +150,17 @@ export function computeLakebaseEstimate(
     if (p.lakebaseCU != null) {
       totalCU += p.lakebaseCU;
       cuCount++;
-      if (p.lakebaseCU === 0 && scaleToZero) {
+      if (p.lakebaseCU === 0 && effectiveScaleToZero) {
         s2zPeriods++;
       }
     }
   }
 
-  const avgCUPerPeriod = cuCount > 0 ? totalCU / cuCount : 0;
+  const finiteCUs = points
+    .map((p) => p.lakebaseCU)
+    .filter((c): c is number => c != null);
+  const peakPeriodLakebaseCU =
+    finiteCUs.length > 0 ? Math.max(...finiteCUs) : 0;
 
   let intervalHours = 1;
   if (cpuData.length >= 2) {
@@ -147,7 +171,16 @@ export function computeLakebaseEstimate(
   }
 
   const periodsPerMonth = LAKEBASE_HOURS_PER_MONTH / intervalHours;
-  const monthlyCU = Math.round(avgCUPerPeriod * periodsPerMonth);
+
+  let monthlyCU: number;
+  let avgCUPerPeriod: number;
+  if (anyPeriodRequiresHighCu) {
+    avgCUPerPeriod = peakPeriodLakebaseCU;
+    monthlyCU = Math.round(peakPeriodLakebaseCU * periodsPerMonth);
+  } else {
+    avgCUPerPeriod = cuCount > 0 ? totalCU / cuCount : 0;
+    monthlyCU = Math.round(avgCUPerPeriod * periodsPerMonth);
+  }
 
   const metrics: LakebaseEstimateMetrics = {
     peakCores: Math.round(peak * 100) / 100,
@@ -159,6 +192,8 @@ export function computeLakebaseEstimate(
     intervalHours,
     periodsPerMonth,
     avgCUPerPeriod,
+    usedPeakCuConstantSizing: anyPeriodRequiresHighCu,
+    peakPeriodLakebaseCU,
   };
 
   return { points, metrics };

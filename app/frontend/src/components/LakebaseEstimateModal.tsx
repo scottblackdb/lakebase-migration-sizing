@@ -13,6 +13,7 @@ import {
   Chip,
   FormControlLabel,
   Checkbox,
+  Alert,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import StorageIcon from "@mui/icons-material/Storage";
@@ -37,6 +38,7 @@ import {
   LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES,
   LAKEBASE_ESTIMATE_DEFAULT_SAFETY_MARGIN_PCT,
   LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO,
+  LAKEBASE_CU_HIGH_USAGE_THRESHOLD,
   tryComputeLakebaseEstimateFromMetrics,
   type LakebaseEstimatePoint,
   lakebaseMonthlyCuCostUsd,
@@ -80,35 +82,51 @@ export default function LakebaseEstimateModal({
     LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO
   );
 
-  const { displayData, peakCores, avgCores, safetyLineCores, monthlyCU, scaleToZeroPeriods, totalPeriods } =
-    useMemo(() => {
-      const t = tryComputeLakebaseEstimateFromMetrics(
-        [cpuMetric],
-        vcores,
-        { safetyMarginPct, scaleToZero }
-      );
-      if (!t.ok) {
-        return {
-          displayData: estimatePointsToChartData([]),
-          peakCores: 0,
-          avgCores: 0,
-          safetyLineCores: 0,
-          monthlyCU: 0,
-          scaleToZeroPeriods: 0,
-          totalPeriods: 0,
-        };
-      }
-      const { points, metrics } = t.result;
+  const {
+    displayData,
+    peakCores,
+    avgCores,
+    safetyLineCores,
+    monthlyCU,
+    scaleToZeroPeriods,
+    totalPeriods,
+    usedPeakCuConstantSizing,
+    peakPeriodLakebaseCU,
+    periodsPerMonth,
+  } = useMemo(() => {
+    const t = tryComputeLakebaseEstimateFromMetrics(
+      [cpuMetric],
+      vcores,
+      { safetyMarginPct, scaleToZero }
+    );
+    if (!t.ok) {
       return {
-        displayData: estimatePointsToChartData(points),
-        peakCores: metrics.peakCores,
-        avgCores: metrics.avgCores,
-        safetyLineCores: metrics.safetyLineCores,
-        monthlyCU: metrics.monthlyCU,
-        scaleToZeroPeriods: metrics.scaleToZeroPeriods,
-        totalPeriods: metrics.totalPeriods,
+        displayData: estimatePointsToChartData([]),
+        peakCores: 0,
+        avgCores: 0,
+        safetyLineCores: 0,
+        monthlyCU: 0,
+        scaleToZeroPeriods: 0,
+        totalPeriods: 0,
+        usedPeakCuConstantSizing: false,
+        peakPeriodLakebaseCU: 0,
+        periodsPerMonth: 0,
       };
-    }, [cpuMetric, vcores, safetyMarginPct, scaleToZero]);
+    }
+    const { points, metrics } = t.result;
+    return {
+      displayData: estimatePointsToChartData(points),
+      peakCores: metrics.peakCores,
+      avgCores: metrics.avgCores,
+      safetyLineCores: metrics.safetyLineCores,
+      monthlyCU: metrics.monthlyCU,
+      scaleToZeroPeriods: metrics.scaleToZeroPeriods,
+      totalPeriods: metrics.totalPeriods,
+      usedPeakCuConstantSizing: metrics.usedPeakCuConstantSizing,
+      peakPeriodLakebaseCU: metrics.peakPeriodLakebaseCU,
+      periodsPerMonth: metrics.periodsPerMonth,
+    };
+  }, [cpuMetric, vcores, safetyMarginPct, scaleToZero]);
 
   const cuCostMonthly = lakebaseMonthlyCuCostUsd(monthlyCU);
   const storageCostMonthly = lakebaseStorageMonthlyCostUsd(storageGb, skuName);
@@ -296,13 +314,24 @@ export default function LakebaseEstimateModal({
               <Typography variant="caption" color="text.secondary">
                 Idle Periods ({"\u2264"} {LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES} cores)
               </Typography>
-              <Typography variant="h5" fontWeight={700} color={scaleToZero ? "#00A972" : "#1B3139"}>
-                {scaleToZero ? `${scaleToZeroPeriods} / ${totalPeriods}` : "Off"}
+              <Typography variant="h5" fontWeight={700} color={scaleToZero && !usedPeakCuConstantSizing ? "#00A972" : "#1B3139"}>
+                {usedPeakCuConstantSizing
+                  ? "N/A"
+                  : scaleToZero
+                    ? `${scaleToZeroPeriods} / ${totalPeriods}`
+                    : "Off"}
               </Typography>
-              {scaleToZero && totalPeriods > 0 && (
+              {usedPeakCuConstantSizing ? (
                 <Typography variant="caption" color="text.secondary">
-                  {Math.round((scaleToZeroPeriods / totalPeriods) * 100)}% idle
+                  Not used (≥{LAKEBASE_CU_HIGH_USAGE_THRESHOLD} CU interval)
                 </Typography>
+              ) : (
+                scaleToZero &&
+                totalPeriods > 0 && (
+                  <Typography variant="caption" color="text.secondary">
+                    {Math.round((scaleToZeroPeriods / totalPeriods) * 100)}% idle
+                  </Typography>
+                )
               )}
             </Paper>
           </Box>
@@ -336,6 +365,16 @@ export default function LakebaseEstimateModal({
             Applied on top of peak CPU cores per period.
           </Typography>
         </Box>
+
+        {usedPeakCuConstantSizing && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            At least one interval needs {LAKEBASE_CU_HIGH_USAGE_THRESHOLD}+ Lakebase CUs (with your
+            safety margin). Scale to zero is ignored for this estimate. Monthly CU uses the{" "}
+            <strong>peak</strong> interval CU ({peakPeriodLakebaseCU}) ×{" "}
+            {periodsPerMonth.toLocaleString(undefined, { maximumFractionDigits: 1 })} intervals per
+            month (constant sizing).
+          </Alert>
+        )}
 
         {/* Chart */}
         <Paper sx={{ p: 2 }} elevation={1}>
@@ -478,8 +517,18 @@ export default function LakebaseEstimateModal({
             <br />
             Peak with safety margin = {peakCores} x (1 + {safetyMarginPct}%) = {safetyLineCores} cores
             <br />
-            Avg CU/period projected over {LAKEBASE_HOURS_PER_MONTH} hrs/month ={" "}
-            <strong>{monthlyCU.toLocaleString()} CU/month</strong>
+            {usedPeakCuConstantSizing ? (
+              <>
+                Any interval ≥ {LAKEBASE_CU_HIGH_USAGE_THRESHOLD} CU → scale to zero disabled; peak interval
+                CU = {peakPeriodLakebaseCU} × {periodsPerMonth.toLocaleString(undefined, { maximumFractionDigits: 1 })}{" "}
+                intervals/mo ≈ <strong>{monthlyCU.toLocaleString()} CU/month</strong>
+              </>
+            ) : (
+              <>
+                Avg CU/period projected over {LAKEBASE_HOURS_PER_MONTH} hrs/month ={" "}
+                <strong>{monthlyCU.toLocaleString()} CU/month</strong>
+              </>
+            )}
           </Typography>
         </Paper>
       </DialogContent>

@@ -13,7 +13,8 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { fetchGroupNames, uploadFile } from "../api";
 
 interface Props {
-  onUploaded: () => void;
+  /** Called after a successful upload; may be async (e.g. refetch server list). */
+  onUploaded?: () => void | Promise<void>;
 }
 
 export default function UploadForm({ onUploaded }: Props) {
@@ -61,7 +62,7 @@ export default function UploadForm({ onUploaded }: Props) {
       if (!groupOptions.includes(normalizedGroup)) {
         setGroupOptions((prev) => [...prev, normalizedGroup].sort());
       }
-      onUploaded();
+      await onUploaded?.();
     } catch (e) {
       setStatus({ msg: String(e), ok: false });
     } finally {

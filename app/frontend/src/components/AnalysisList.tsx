@@ -108,17 +108,18 @@ export default function AnalysisList() {
     });
   };
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (options?: { showFullPageLoading?: boolean }) => {
+    const showSpinner = options?.showFullPageLoading !== false;
+    if (showSpinner) setLoading(true);
     try {
       setAnalyses(await fetchAnalyses());
     } finally {
-      setLoading(false);
+      if (showSpinner) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    load();
+    void load({ showFullPageLoading: true });
   }, [load]);
 
   useEffect(() => {
@@ -156,7 +157,7 @@ export default function AnalysisList() {
     setGroupEditError(null);
     try {
       await updateAnalysisGroup(editingAnalysisId, trimmed);
-      await load();
+      await load({ showFullPageLoading: false });
       if (!groupOptions.includes(trimmed)) {
         setGroupOptions((prev) => [...prev, trimmed].sort());
       }
@@ -171,8 +172,9 @@ export default function AnalysisList() {
   return (
     <>
       <UploadForm
-        onUploaded={() => {
-          void load().then(() => refreshGroupOptions());
+        onUploaded={async () => {
+          await load({ showFullPageLoading: false });
+          refreshGroupOptions();
         }}
       />
 

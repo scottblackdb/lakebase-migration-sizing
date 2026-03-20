@@ -1,0 +1,5 @@
+# Install only what you need for your cloud(s).
+boto3>=1.28.0
+azure-identity>=1.14.0
+azure-mgmt-monitor>=6.0.0
+azure-mgmt-rdbms>=10.1.0
