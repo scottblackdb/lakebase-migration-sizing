@@ -51,7 +51,10 @@ export default function AnalysisList() {
     if (!q) return true;
     const group = (a.group_name ?? "").toLowerCase();
     const server = (a.server_name ?? "").toLowerCase();
-    return group.includes(q) || server.includes(q);
+    const owner = (a.owner ?? "").toLowerCase();
+    return (
+      group.includes(q) || server.includes(q) || owner.includes(q)
+    );
   });
 
   const visibleCapSlice = useMemo(
@@ -260,6 +263,9 @@ export default function AnalysisList() {
                     <TableCell sx={{ fontWeight: 700, minWidth: 280 }}>
                       Group Name
                     </TableCell>
+                    <TableCell sx={{ fontWeight: 700, minWidth: 200 }}>
+                      Owner
+                    </TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Region</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>vCores</TableCell>
                     <TableCell sx={{ fontWeight: 700 }}>Date Range</TableCell>
@@ -416,6 +422,19 @@ export default function AnalysisList() {
                               </Typography>
                             </Tooltip>
                           )}
+                        </TableCell>
+                        <TableCell>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              maxWidth: 220,
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {a.owner ?? "—"}
+                          </Typography>
                         </TableCell>
                         <TableCell>
                           {a.region && (

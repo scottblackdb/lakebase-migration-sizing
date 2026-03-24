@@ -28,3 +28,5 @@ cd app/frontend && bun run build
 ```
 
 Use the path prefix your workspace uses for the app (must end with `/` or Vite will normalize it).
+
+The React app reads the same `BASE_URL` for **`BrowserRouter` basename**, so routes like `/analysis/:id` stay under that prefix. If you set `VITE_BASE_URL` for API/asset URLs but an old build had no basename, refreshing a detail page could request `/analysis/...` at the site root and return `{"detail":"Not Found"}` instead of the SPA.

@@ -76,6 +76,7 @@ def ensure_tables() -> None:
         CREATE TABLE IF NOT EXISTS {s}analyses (
             analysis_id TEXT,
             group_name TEXT,
+            owner TEXT,
             server_name TEXT,
             granularity TEXT,
             start_time TEXT,

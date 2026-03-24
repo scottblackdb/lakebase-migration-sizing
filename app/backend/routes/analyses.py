@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from backend.config import settings
 from backend.db import execute, fetchall
-from backend.models import AnalysisSummary, GroupNameUpdate
+from backend.models import AnalysisSummary, GroupNameUpdate, OwnerUpdate
 
 router = APIRouter()
 
@@ -51,5 +51,21 @@ def update_analysis_group(analysis_id: str, body: GroupNameUpdate):
     if not existing:
         raise HTTPException(status_code=404, detail="Analysis not found")
     execute(f"UPDATE {s}analyses SET group_name = '{g}' WHERE analysis_id = '{aid}'")
+    rows = fetchall(f"SELECT * FROM {s}analyses WHERE analysis_id = '{aid}'")
+    return rows[0]
+
+
+@router.patch("/analyses/{analysis_id}/owner", response_model=AnalysisSummary)
+def update_analysis_owner(analysis_id: str, body: OwnerUpdate):
+    aid = _escape(analysis_id)
+    existing = fetchall(f"SELECT * FROM {s}analyses WHERE analysis_id = '{aid}'")
+    if not existing:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    normalized = body.owner.strip()
+    if not normalized:
+        execute(f"UPDATE {s}analyses SET owner = NULL WHERE analysis_id = '{aid}'")
+    else:
+        o = _escape(normalized)
+        execute(f"UPDATE {s}analyses SET owner = '{o}' WHERE analysis_id = '{aid}'")
     rows = fetchall(f"SELECT * FROM {s}analyses WHERE analysis_id = '{aid}'")
     return rows[0]

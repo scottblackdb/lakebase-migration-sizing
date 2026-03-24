@@ -73,14 +73,21 @@ export default function AnalysisDetail() {
   const [modalOpen, setModalOpen] = useState(false);
   const [lakebaseModalOpen, setLakebaseModalOpen] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
+    setLoadError(null);
     Promise.all([fetchAnalysis(id), fetchAllMetrics(id)])
       .then(([a, m]) => {
         setAnalysis(a);
         setMetrics(m);
+      })
+      .catch((e) => {
+        setAnalysis(null);
+        setMetrics([]);
+        setLoadError(e instanceof Error ? e.message : String(e));
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -113,7 +120,8 @@ export default function AnalysisDetail() {
   if (!analysis) {
     return (
       <Typography color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
-        Analysis not found.
+        {loadError ??
+          "Analysis not found. If this persists after refresh, ensure the app was built with the correct VITE_BASE_URL for your deploy path."}
       </Typography>
     );
   }
@@ -211,6 +219,9 @@ export default function AnalysisDetail() {
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
           {analysis.group_name && (
             <Chip label={analysis.group_name} size="small" variant="filled" sx={{ backgroundColor: "#143D4A", color: "#fff" }} />
+          )}
+          {analysis.owner && (
+            <Chip label={analysis.owner} size="small" variant="outlined" sx={{ borderColor: "#143D4A", color: "#143D4A" }} />
           )}
           <Chip label={`Granularity: ${analysis.granularity}`} size="small" variant="outlined" />
         </Box>

@@ -4,7 +4,7 @@ Single entry point to export **~90 days** of metrics as JSON for [lakebase-migra
 
 ## Security & connectivity
 
-- **No database password is required.** This tool does **not** open a TCP connection to PostgreSQL and does not run SQL against your database.
+- **No database password is required.** This tool does **not** open a connection to cloud managed databases and does not run SQL against your database. Currently AWS RDS Postgres, Azure Postgres and Azure SQL Server are supported.
 - Metrics and sizing hints come only from your cloud provider’s **management and monitoring APIs** (instance metadata + time-series metrics).
 - You still need **cloud credentials** with permission to call those APIs (see per-provider sections below).
 
@@ -38,9 +38,14 @@ python -m collect_metrics azure-postgres \
   --resource-group <rg> \
   --server-name <server> \
   --output-dir ./output
-```
 
-Legacy wrapper scripts still work: `AWSPostgres/export_metrics.py` and `AzurePostgres/export_metrics.py` delegate to this package.
+python -m collect_metrics azure-sql \
+  --subscription-id <sub> \
+  --resource-group <rg> \
+  --server-name <logical-sql-server> \
+  --database-name <database> \
+  --output-dir ./output
+```
 
 ## API calls (what each collector uses)
 
@@ -76,24 +81,28 @@ Below are the **service APIs** invoked (via AWS SDK / Azure SDK). Names match th
 
 ---
 
-## Add a new database / cloud
+### `azure-sql` — Azure SQL Database
 
-1. Create `collect_metrics/databases/<your_module>.py`.
-2. Subclass `MetricsCollector` from `collect_metrics.base`.
-3. Set `provider_id` (CLI subcommand) and `description`.
-4. Implement `register_arguments(parser)` and `run(args)`.
-5. Register the class in `collect_metrics/collect_metrics.py` → `COLLECTORS` list.
+| Service | Client (Azure SDK) | API operations | Purpose |
+|--------|--------------------|----------------|---------|
+| **Azure SQL** | `SqlManagementClient` | `databases.get` | Read database **SKU** (name/tier/capacity), **max size**, **location**. |
+| **Azure Monitor** | `MonitorManagementClient` | `metrics.list` | Time series for the **database** ARM resource ID (`Microsoft.Sql/servers/{server}/databases/{db}` — see `databases/azure_sql.py` → `build_resource_id`). |
 
-Keep provider-specific SDK imports **inside** `run()` / `export_metrics()` so `python -m collect_metrics --help` works without every cloud library installed.
+**Authentication:** `DefaultAzureCredential` (same as PostgreSQL).  
+**RBAC (typical):** read on the SQL server/database + **Monitoring Reader** for metrics.
 
-Document new providers here under **API calls** (management + monitoring only unless you intentionally connect to the DB).
+**Metrics (same logical JSON keys as `azure-postgres`):**
 
-## Layout
+| Logical key | Azure Monitor source | Notes |
+|-------------|---------------------|--------|
+| `cpu_percent` | `cpu_percent` (vCore / GP / BC / Hyperscale) or `dtu_consumption_percent` (Basic / Standard / Premium) | Tier is inferred from the database SKU. |
+| `memory_percent` | `sql_instance_memory_percent` | Instance/app advanced metric; may be empty on some SKUs if not published. |
+| `storage_percent` | `storage_percent` | Not published for Hyperscale per Microsoft docs — series may be empty. |
+| `storage_used` | `storage` | Data space used (bytes). |
+| `read_iops` | `physical_data_read_percent` | **Data IO %**, not raw IOPS (Azure does not expose DB-level read IOPS like PostgreSQL flexible server). |
+| `write_iops` | `log_write_percent` | **Log IO %**. |
+| `iops`, `xact_commit`, `blks_hit`, `blks_read` | — | **Not available** at this resource scope; exported with **empty** `data` arrays so the JSON shape matches other providers. |
 
-| Path | Role |
-|------|------|
-| `base.py` | `MetricsCollector` ABC |
-| `collect_metrics.py` | Argparse + `COLLECTORS` registry |
-| `databases/` | One Python module per database / cloud type |
-| `databases/aws_rds_postgres.py` | RDS / Aurora + CloudWatch |
-| `databases/azure_postgres.py` | Azure Database for PostgreSQL + Monitor |
+Top-level `server_name` in the file is `"{server_name}.{database_name}"` so uploads stay unique per database.
+
+---

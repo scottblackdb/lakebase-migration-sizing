@@ -5,6 +5,14 @@ import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
 import App from "./App";
 import "./index.css";
 
+/** Must match Vite `base` / `VITE_BASE_URL` so client routes align with the URL bar on refresh (subpath deploys). */
+function routerBasename(): string {
+  const raw = import.meta.env.BASE_URL ?? "/";
+  if (raw === "/" || raw === "./") return "/";
+  const trimmed = raw.replace(/\/$/, "");
+  return trimmed || "/";
+}
+
 const theme = createTheme({
   palette: {
     primary: { main: "#1B3139", dark: "#143D4A" },
@@ -78,7 +86,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
+      <BrowserRouter basename={routerBasename()}>
         <App />
       </BrowserRouter>
     </ThemeProvider>

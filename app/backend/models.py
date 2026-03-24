@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class AnalysisSummary(BaseModel):
     analysis_id: str
     group_name: str | None = None
+    owner: str | None = None
     server_name: str
     granularity: str
     start_time: str
@@ -46,3 +47,9 @@ class AiAnalysisResponse(BaseModel):
 
 class GroupNameUpdate(BaseModel):
     group_name: str
+
+
+class OwnerUpdate(BaseModel):
+    """Owner email; send empty string to clear."""
+
+    owner: str = ""

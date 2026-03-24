@@ -8,6 +8,7 @@ SET search_path TO estimator;
 CREATE TABLE IF NOT EXISTS analyses (
     analysis_id TEXT,
     group_name TEXT,
+    owner TEXT,
     server_name TEXT,
     granularity TEXT,
     start_time TEXT,
@@ -22,6 +23,9 @@ CREATE TABLE IF NOT EXISTS analyses (
     region TEXT,
     ai_analysis TEXT
 );
+
+-- Existing deployments: add column if missing (PostgreSQL 11+)
+ALTER TABLE analyses ADD COLUMN IF NOT EXISTS owner TEXT;
 
 -- Metric tables (one per metric type; rows keyed by analysis_id + timestamp)
 CREATE TABLE IF NOT EXISTS metric_cpu_percent (

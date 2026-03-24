@@ -1,6 +1,7 @@
 export interface AnalysisSummary {
   analysis_id: string;
   group_name: string | null;
+  owner: string | null;
   server_name: string;
   granularity: string;
   start_time: string;

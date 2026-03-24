@@ -1,7 +1,11 @@
-import os
+from __future__ import annotations
 
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+import os
+from pathlib import Path
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.routes import ai_analysis, analyses, metrics, upload
@@ -25,16 +29,44 @@ _STATIC_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "frontend", "dist")
 )
 _INDEX_HTML = os.path.join(_STATIC_ROOT, "index.html")
+_STATIC_ROOT_PATH = Path(_STATIC_ROOT).resolve()
 _can_serve_static = os.path.isdir(_STATIC_ROOT) and os.path.isfile(_INDEX_HTML)
 
+
+def _file_under_static_root(rel_path: str) -> Optional[Path]:
+    """Resolve rel_path inside dist; return path only if it is a real file under _STATIC_ROOT."""
+    try:
+        candidate = (_STATIC_ROOT_PATH / rel_path).resolve()
+        candidate.relative_to(_STATIC_ROOT_PATH)
+    except (OSError, ValueError):
+        return None
+    return candidate if candidate.is_file() else None
+
+
 if _can_serve_static:
-    # Mount entire dist at / so /, /assets/*, and SPA paths (e.g. /analysis/:id) work.
-    # html=True returns index.html when no file matches (client-side routing).
-    app.mount(
-        "/",
-        StaticFiles(directory=_STATIC_ROOT, html=True),
-        name="frontend",
-    )
+    # Starlette StaticFiles(html=True) does NOT fall back to index.html for unknown paths
+    # (only directory index + optional 404.html). SPA deep links need an explicit fallback.
+    _assets_dir = os.path.join(_STATIC_ROOT, "assets")
+    if os.path.isdir(_assets_dir):
+        app.mount(
+            "/assets",
+            StaticFiles(directory=_assets_dir),
+            name="frontend_assets",
+        )
+
+    @app.get("/")
+    def spa_index():
+        return FileResponse(_INDEX_HTML)
+
+    @app.get("/{full_path:path}")
+    def spa_or_static(full_path: str):
+        # Should not run for /api/* (API routes are registered above), but guard anyway.
+        if full_path == "api" or full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        under = _file_under_static_root(full_path)
+        if under is not None:
+            return FileResponse(under)
+        return FileResponse(_INDEX_HTML)
 else:
 
     @app.get("/")

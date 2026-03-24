@@ -15,12 +15,14 @@ if str(_REPO_ROOT) not in sys.path:
 
 from collect_metrics.databases.aws_rds_postgres import AwsRdsPostgresCollector
 from collect_metrics.databases.azure_postgres import AzurePostgresCollector
+from collect_metrics.databases.azure_sql import AzureSqlCollector
 from collect_metrics.base import MetricsCollector
 
 # Register new collectors here (order defines ``collect_metrics`` help order).
 COLLECTORS: list[type[MetricsCollector]] = [
     AwsRdsPostgresCollector,
     AzurePostgresCollector,
+    AzureSqlCollector,
 ]
 
 _MAIN_DESCRIPTION = """\
@@ -51,6 +53,13 @@ examples (from repo root):
       --server-name <server-name> \\
       --output-dir ./output
 
+  %(prog)s azure-sql \\
+      --subscription-id <azure-subscription-id> \\
+      --resource-group <resource-group> \\
+      --server-name <logical-sql-server> \\
+      --database-name <database-name> \\
+      --output-dir ./output
+
 from collect_metrics/ directory:
   python collect_metrics.py --help
   python collect_metrics.py aws-rds-postgres --help
@@ -58,6 +67,7 @@ from collect_metrics/ directory:
 legacy wrappers (same CLI as above):
   python AWSPostgres/export_metrics.py --help
   python AzurePostgres/export_metrics.py --help
+  python AzureSql/export_metrics.py --help
 
 More detail: collect_metrics/README.md
 """
