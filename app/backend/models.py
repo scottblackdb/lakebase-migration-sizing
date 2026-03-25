@@ -53,3 +53,18 @@ class OwnerUpdate(BaseModel):
     """Owner email; send empty string to clear."""
 
     owner: str = ""
+
+
+class CurrentUser(BaseModel):
+    """Inbound identity from reverse proxy (e.g. ``X-Forwarded-User``)."""
+
+    user: str | None = None
+
+
+class BatchDeleteAnalysesRequest(BaseModel):
+    analysis_ids: list[str]
+
+
+class BatchDeleteAnalysesResponse(BaseModel):
+    deleted: int
+    analysis_ids: list[str]

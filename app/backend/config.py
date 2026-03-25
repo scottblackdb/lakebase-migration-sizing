@@ -2,6 +2,7 @@ import os
 
 
 class Settings:
+    #: Workspace URL (e.g. ``https://dbc-xxx.cloud.databricks.com``).
     DATABRICKS_HOST: str = os.environ.get("DATABRICKS_HOST", "")
     DATABRICKS_TOKEN: str = os.environ.get("DATABRICKS_TOKEN", "")
     PG_HOST: str = os.environ.get("PGHOST", "localhost")

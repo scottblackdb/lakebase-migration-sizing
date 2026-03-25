@@ -13,7 +13,7 @@ from typing import Any
 from fastapi import Body, FastAPI, HTTPException, Query, Request
 from pydantic import BaseModel
 
-from backend.identity import owner_from_x_forwarded_user
+from backend.identity import current_user_from_request
 from backend.ingest import ingest_metrics_payload
 from backend.models import UploadResponse
 from backend.tables import ensure_tables
@@ -49,7 +49,7 @@ def http_upload_json(
             detail="JSON body must include server_name and metrics",
         )
     try:
-        owner = owner_from_x_forwarded_user(request.headers)
+        owner = current_user_from_request(request.headers)
         return ingest_metrics_payload(payload, group_name, owner)
     except HTTPException:
         raise

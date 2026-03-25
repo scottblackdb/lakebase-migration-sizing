@@ -1,17 +1,13 @@
-"""Derive app identity from inbound HTTP (e.g. reverse proxy auth)."""
+"""Derive app identity from the ``X-Forwarded-User`` header set by the reverse proxy."""
 
 from __future__ import annotations
 
 from typing import Mapping
 
 
-def owner_from_x_forwarded_user(headers: Mapping[str, str]) -> str | None:
-    """
-    Owner stored on analyses: value of ``X-Forwarded-User`` when present and non-blank.
-
-    Proxies (e.g. Databricks Apps, OAuth gateways) often set this header for the signed-in user.
-    """
-    raw = headers.get("x-forwarded-user")
+def current_user_from_request(headers: Mapping[str, str]) -> str | None:
+    """Return the signed-in user from ``X-Forwarded-Email``, or ``None`` if absent/blank."""
+    raw = headers.get("x-forwarded-email")
     if not raw:
         return None
     s = raw.strip()

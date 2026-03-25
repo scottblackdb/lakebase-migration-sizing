@@ -1,4 +1,10 @@
-import type { AnalysisSummary, MetricResponse, UploadResponse } from "./types";
+import type {
+  AnalysisSummary,
+  BatchDeleteAnalysesResponse,
+  CurrentUserResponse,
+  MetricResponse,
+  UploadResponse,
+} from "./types";
 
 /** Resolves /api paths when the SPA uses a non-root Vite `base` (e.g. Databricks Apps). */
 function apiUrl(path: string): string {
@@ -27,8 +33,22 @@ async function apiJson<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+export async function fetchCurrentUser(): Promise<CurrentUserResponse> {
+  return apiJson<CurrentUserResponse>("me");
+}
+
 export async function fetchAnalyses(): Promise<AnalysisSummary[]> {
   return apiJson<AnalysisSummary[]>("analyses");
+}
+
+export async function batchDeleteAnalyses(
+  analysisIds: string[]
+): Promise<BatchDeleteAnalysesResponse> {
+  return apiJson<BatchDeleteAnalysesResponse>("analyses/batch-delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ analysis_ids: analysisIds }),
+  });
 }
 
 export async function fetchGroupNames(): Promise<string[]> {

@@ -19,6 +19,10 @@ import {
   Autocomplete,
   Checkbox,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -26,12 +30,22 @@ import DnsIcon from "@mui/icons-material/Dns";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import StorageIcon from "@mui/icons-material/Storage";
-import { fetchAnalyses, fetchGroupNames, updateAnalysisGroup } from "../api";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import {
+  batchDeleteAnalyses,
+  fetchAnalyses,
+  fetchGroupNames,
+  updateAnalysisGroup,
+} from "../api";
+import { useCurrentUser } from "../context/CurrentUserContext";
 import type { AnalysisSummary } from "../types";
 import UploadForm from "./UploadForm";
 import BatchLakebaseEstimateModal from "./BatchLakebaseEstimateModal";
 
 const MAX_BATCH_SELECTION = 20;
+
+/** Must match backend ``ALLOWED_BATCH_DELETE_EMAIL`` (``X-Forwarded-User``). */
+const BATCH_DELETE_ALLOWED_EMAIL = "scott.black@databricks.com";
 
 export default function AnalysisList() {
   const [analyses, setAnalyses] = useState<AnalysisSummary[]>([]);
@@ -44,7 +58,16 @@ export default function AnalysisList() {
   const [groupEditError, setGroupEditError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchModalOpen, setBatchModalOpen] = useState(false);
+  const meUser = useCurrentUser();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const canBatchDelete =
+    meUser !== undefined &&
+    meUser !== null &&
+    meUser.trim().toLowerCase() === BATCH_DELETE_ALLOWED_EMAIL.toLowerCase();
 
   const filteredAnalyses = analyses.filter((a) => {
     const q = search.trim().toLowerCase();
@@ -172,6 +195,23 @@ export default function AnalysisList() {
     }
   };
 
+  const handleConfirmBatchDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setDeleteSubmitting(true);
+    setDeleteError(null);
+    try {
+      await batchDeleteAnalyses([...selectedIds]);
+      setSelectedIds(new Set());
+      setDeleteDialogOpen(false);
+      await load({ showFullPageLoading: false });
+      refreshGroupOptions();
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setDeleteSubmitting(false);
+    }
+  };
+
   return (
     <>
       <UploadForm
@@ -228,6 +268,19 @@ export default function AnalysisList() {
                 }}
               >
                 Lakebase estimates ({selectedIds.size})
+              </Button>
+            )}
+            {canBatchDelete && selectedIds.size > 0 && (
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<DeleteOutlineIcon />}
+                onClick={() => {
+                  setDeleteError(null);
+                  setDeleteDialogOpen(true);
+                }}
+              >
+                Delete selected ({selectedIds.size})
               </Button>
             )}
           </Box>
@@ -479,6 +532,51 @@ export default function AnalysisList() {
         onClose={() => setBatchModalOpen(false)}
         analyses={selectedAnalysesForBatch}
       />
+
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => !deleteSubmitting && setDeleteDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Delete selected analyses?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            This permanently removes{" "}
+            <strong>{selectedIds.size}</strong>{" "}
+            {selectedIds.size === 1 ? "analysis" : "analyses"} and all of their
+            metric data. This cannot be undone.
+          </Typography>
+          {deleteError && (
+            <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+              {deleteError}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setDeleteDialogOpen(false)}
+            disabled={deleteSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => void handleConfirmBatchDelete()}
+            disabled={deleteSubmitting}
+            startIcon={
+              deleteSubmitting ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <DeleteOutlineIcon />
+              )
+            }
+          >
+            {deleteSubmitting ? "Deleting…" : "Delete"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 }

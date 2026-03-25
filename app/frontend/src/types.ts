@@ -36,3 +36,12 @@ export interface UploadResponse {
   server_name: string;
   metrics_loaded: string[];
 }
+
+export interface CurrentUserResponse {
+  user: string | null;
+}
+
+export interface BatchDeleteAnalysesResponse {
+  deleted: number;
+  analysis_ids: string[];
+}

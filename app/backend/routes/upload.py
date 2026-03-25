@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile
 
-from backend.identity import owner_from_x_forwarded_user
+from backend.identity import current_user_from_request
 from backend.ingest import ingest_metrics_json_bytes
 from backend.models import UploadResponse
 
@@ -17,5 +17,5 @@ async def upload_metrics(
         raise HTTPException(status_code=400, detail="File must be a .json file")
 
     content = await file.read()
-    owner = owner_from_x_forwarded_user(request.headers)
+    owner = current_user_from_request(request.headers)
     return ingest_metrics_json_bytes(content, group_name, owner)

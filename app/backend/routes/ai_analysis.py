@@ -62,6 +62,27 @@ def _build_cpu_summary(analysis_id: str) -> dict:
     }
 
 
+def _get_auth_headers() -> dict[str, str]:
+    """Return auth headers for Databricks API calls.
+
+    Uses ``DATABRICKS_TOKEN`` when set (local dev), otherwise falls back to the
+    Databricks SDK default auth chain (service principal in Databricks Apps).
+    """
+    token = (settings.DATABRICKS_TOKEN or "").strip()
+    if token:
+        return {"Authorization": f"Bearer {token}"}
+    try:
+        from databricks.sdk import WorkspaceClient
+
+        w = WorkspaceClient()
+        return w.config.authenticate()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unable to obtain Databricks auth token: {exc}",
+        ) from exc
+
+
 def _call_foundation_model(prompt: str) -> str:
     """Call Databricks Foundation Model API."""
     host = settings.DATABRICKS_HOST.rstrip("/")
@@ -70,10 +91,7 @@ def _call_foundation_model(prompt: str) -> str:
     model = settings.FOUNDATION_MODEL
     url = f"{host}/serving-endpoints/{model}/invocations"
 
-    headers = {
-        "Authorization": f"Bearer {settings.DATABRICKS_TOKEN}",
-        "Content-Type": "application/json",
-    }
+    headers = {**_get_auth_headers(), "Content-Type": "application/json"}
 
     payload = {
         "messages": [
