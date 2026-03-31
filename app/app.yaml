@@ -1,4 +1,5 @@
 command:
+  - opentelemetry-instrument
   - uvicorn
   - main:app
   - --host
@@ -6,9 +7,11 @@ command:
   - --port
   - 8000
 env:
+  - name: OTEL_TRACES_SAMPLER
+    value: "always_on"
   - name: DATABRICKS_HOST
     description: Databricks workspace URL
   - name: DATABRICKS_TOKEN
-    description: Databricks personal access token
+    description: Databricks personal access token (local dev; leave blank for Apps)
   - name: DATABRICKS_SQL_WAREHOUSE_PATH
     description: SQL warehouse HTTP path (e.g., /sql/1.0/warehouses/abc123)

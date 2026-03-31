@@ -17,9 +17,11 @@ import {
   TableRow,
   Paper,
   Switch,
+  Checkbox,
   FormControlLabel,
   CircularProgress,
   Alert,
+  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import StorageIcon from "@mui/icons-material/Storage";
@@ -29,9 +31,12 @@ import {
   LAKEBASE_ESTIMATE_DEFAULT_SAFETY_MARGIN_PCT,
   LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO,
   LAKEBASE_CU_HIGH_USAGE_THRESHOLD,
+  LAKEBASE_BRANCHED_STORAGE_FRACTION,
   tryComputeLakebaseEstimateFromMetrics,
   lakebaseMonthlyCuCostUsd,
+  lakebaseStorageMonthlyCostUsd,
   lakebaseTotalMonthlyCostUsd,
+  effectiveStorageGbForLakebaseSizing,
 } from "../lib/lakebaseEstimate";
 
 interface Props {
@@ -47,6 +52,7 @@ type RowResult =
       ok: true;
       monthlyCU: number;
       computeUsd: number;
+      storageUsd: number;
       totalUsd: number;
       usedPeakCuConstantSizing: boolean;
     }
@@ -75,6 +81,8 @@ export default function BatchLakebaseEstimateModal({
   const [autoscaleById, setAutoscaleById] = useState<Record<string, boolean>>(
     {}
   );
+  /** Branched DB: use only a fraction of reported storage for storage $/mo. */
+  const [branchedById, setBranchedById] = useState<Record<string, boolean>>({});
   const [metricsById, setMetricsById] = useState<
     Record<string, MetricResponse[]>
   >({});
@@ -97,10 +105,21 @@ export default function BatchLakebaseEstimateModal({
       }
       return next;
     });
+    setBranchedById((prev) => {
+      const next: Record<string, boolean> = {};
+      for (const a of analyses) {
+        next[a.analysis_id] = prev[a.analysis_id] ?? false;
+      }
+      return next;
+    });
   }, [open, analysesKey, analyses]);
 
   const handleAutoscaleChange = useCallback((id: string, checked: boolean) => {
     setAutoscaleById((prev) => ({ ...prev, [id]: checked }));
+  }, []);
+
+  const handleBranchedChange = useCallback((id: string, checked: boolean) => {
+    setBranchedById((prev) => ({ ...prev, [id]: checked }));
   }, []);
 
   const handleGenerate = async () => {
@@ -159,9 +178,18 @@ export default function BatchLakebaseEstimateModal({
       }
       const monthlyCU = computed.result.metrics.monthlyCU;
       const computeUsd = lakebaseMonthlyCuCostUsd(monthlyCU);
+      const isBranched = branchedById[a.analysis_id] ?? false;
+      const storageForSizing = effectiveStorageGbForLakebaseSizing(
+        a.storage_size_gb,
+        isBranched
+      );
+      const storageUsd = lakebaseStorageMonthlyCostUsd(
+        storageForSizing,
+        a.sku_name
+      );
       const totalUsd = lakebaseTotalMonthlyCostUsd(
         monthlyCU,
-        a.storage_size_gb,
+        storageForSizing,
         a.sku_name
       );
       return {
@@ -170,24 +198,27 @@ export default function BatchLakebaseEstimateModal({
         ok: true as const,
         monthlyCU,
         computeUsd,
+        storageUsd,
         totalUsd,
         usedPeakCuConstantSizing: computed.result.metrics.usedPeakCuConstantSizing,
       };
     });
-  }, [analyses, metricsById, safetyMarginPct, autoscaleById]);
+  }, [analyses, metricsById, safetyMarginPct, autoscaleById, branchedById]);
 
   const totals = useMemo(() => {
     let monthlyCUSum = 0;
     let computeUsdSum = 0;
+    let storageUsdSum = 0;
     let totalUsdSum = 0;
     for (const r of rows) {
       if (r.ok) {
         monthlyCUSum += r.monthlyCU;
         computeUsdSum += r.computeUsd;
+        storageUsdSum += r.storageUsd;
         totalUsdSum += r.totalUsd;
       }
     }
-    return { monthlyCUSum, computeUsdSum, totalUsdSum };
+    return { monthlyCUSum, computeUsdSum, storageUsdSum, totalUsdSum };
   }, [rows]);
 
   const hasResults = Object.keys(metricsById).length > 0;
@@ -236,7 +267,9 @@ export default function BatchLakebaseEstimateModal({
           Estimates use the same formula as the per-server Lakebase estimate
           dialog. Per row, &quot;Scale to zero&quot; applies when no interval needs{" "}
           {LAKEBASE_CU_HIGH_USAGE_THRESHOLD}+ CUs; otherwise scale-to-zero is ignored and monthly
-          CU uses peak interval CU × intervals/month.
+          CU uses peak interval CU × intervals/month. Mark a database as{" "}
+          <strong>Branched</strong> to size storage at{" "}
+          {LAKEBASE_BRANCHED_STORAGE_FRACTION * 100}% of reported capacity for that row only.
         </Typography>
 
         <Box
@@ -299,11 +332,19 @@ export default function BatchLakebaseEstimateModal({
                 <TableCell sx={{ fontWeight: 700 }} align="center">
                   Scale to zero
                 </TableCell>
+                <TableCell sx={{ fontWeight: 700 }} align="center">
+                  <Tooltip title="Branched DB: storage $/mo uses 10% of reported GB">
+                    <span>Branched</span>
+                  </Tooltip>
+                </TableCell>
                 <TableCell sx={{ fontWeight: 700 }} align="right">
                   Monthly CU
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700 }} align="right">
                   Compute $/mo
+                </TableCell>
+                <TableCell sx={{ fontWeight: 700 }} align="right">
+                  Storage $/mo
                 </TableCell>
                 <TableCell sx={{ fontWeight: 700 }} align="right">
                   Total $/mo (CU + storage)
@@ -316,6 +357,7 @@ export default function BatchLakebaseEstimateModal({
                 const scaleToZeroUi =
                   autoscaleById[a.analysis_id] ??
                   LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO;
+                const branchedUi = branchedById[a.analysis_id] ?? false;
                 const row = hasResults
                   ? rows.find((r) => r.analysisId === a.analysis_id)
                   : undefined;
@@ -351,6 +393,21 @@ export default function BatchLakebaseEstimateModal({
                         sx={{ m: 0 }}
                       />
                     </TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="Use 10% of reported storage for storage cost on this database">
+                        <Checkbox
+                          checked={branchedUi}
+                          onChange={(_, c) =>
+                            handleBranchedChange(a.analysis_id, c)
+                          }
+                          size="small"
+                          sx={{
+                            color: "#00A972",
+                            "&.Mui-checked": { color: "#00A972" },
+                          }}
+                        />
+                      </Tooltip>
+                    </TableCell>
                     <TableCell align="right">
                       {row?.ok ? row.monthlyCU.toLocaleString() : "—"}
                     </TableCell>
@@ -358,7 +415,37 @@ export default function BatchLakebaseEstimateModal({
                       {row?.ok ? `$${formatUsd(row.computeUsd)}` : "—"}
                     </TableCell>
                     <TableCell align="right">
-                      {row?.ok ? `$${formatUsd(row.totalUsd)}` : "—"}
+                      {row?.ok ? `$${formatUsd(row.storageUsd)}` : "—"}
+                    </TableCell>
+                    <TableCell align="right">
+                      {row?.ok ? (
+                        <Box>
+                          <Typography variant="body2" component="span">
+                            ${formatUsd(row.totalUsd)}
+                          </Typography>
+                          {branchedUi &&
+                            a.storage_size_gb != null &&
+                            a.storage_size_gb > 0 && (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                display="block"
+                              >
+                                storage:{" "}
+                                {(
+                                  a.storage_size_gb *
+                                  LAKEBASE_BRANCHED_STORAGE_FRACTION
+                                ).toLocaleString(undefined, {
+                                  maximumFractionDigits: 1,
+                                })}{" "}
+                                GB ({LAKEBASE_BRANCHED_STORAGE_FRACTION * 100}% of{" "}
+                                {a.storage_size_gb} GB)
+                              </Typography>
+                            )}
+                        </Box>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
                     <TableCell>
                       {!hasResults ? (
@@ -387,7 +474,7 @@ export default function BatchLakebaseEstimateModal({
               })}
               {hasResults && (
                 <TableRow sx={{ backgroundColor: "#1B3139" }}>
-                  <TableCell colSpan={2}>
+                  <TableCell colSpan={3}>
                     <Typography variant="subtitle2" fontWeight={700} color="#fff">
                       All workloads (successful rows)
                     </Typography>
@@ -400,6 +487,11 @@ export default function BatchLakebaseEstimateModal({
                   <TableCell align="right">
                     <Typography variant="subtitle2" fontWeight={700} color="#00A972">
                       ${formatUsd(totals.computeUsdSum)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="subtitle2" fontWeight={700} color="#00A972">
+                      ${formatUsd(totals.storageUsdSum)}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">

@@ -233,6 +233,21 @@ export function lakebaseStorageMonthlyCostUsd(
   return storageGb * lakebaseStorageUsdPerGb(skuName);
 }
 
+/** For branched Lakebase databases, sizing uses this fraction of reported storage. */
+export const LAKEBASE_BRANCHED_STORAGE_FRACTION = 0.1;
+
+/**
+ * Storage GB used for Lakebase storage $/mo (branched DBs count only a fraction of reported size).
+ */
+export function effectiveStorageGbForLakebaseSizing(
+  storageGb: number | null | undefined,
+  isBranchedDatabase: boolean
+): number | null {
+  if (storageGb == null) return null;
+  if (!isBranchedDatabase) return storageGb;
+  return Math.max(0, storageGb * LAKEBASE_BRANCHED_STORAGE_FRACTION);
+}
+
 export function lakebaseTotalMonthlyCostUsd(
   monthlyCU: number,
   storageGb: number | null | undefined,

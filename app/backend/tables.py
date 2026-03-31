@@ -4,12 +4,10 @@ Canonical DDL (for reference / manual runs): see schema.sql in this directory.
 """
 import logging
 
-import psycopg2
-
 from backend.config import settings
+from backend.db import get_connection, execute
 
 logger = logging.getLogger(__name__)
-from backend.db import execute
 
 METRIC_NAMES = [
     "cpu_percent",
@@ -39,36 +37,25 @@ DISPLAY_NAMES = {
 
 
 def ensure_tables() -> None:
-    # Create schema using a direct connection since it may not exist yet.
-    conn = psycopg2.connect(
-        host=settings.PG_HOST,
-        port=settings.PG_PORT,
-        dbname=settings.PG_DATABASE,
-        user=settings.PG_USER,
-        password=settings.PG_PASSWORD,
-        sslmode="require",
-    )
-    try:
-        with conn.cursor() as cur:
-            cur.execute(f"CREATE SCHEMA IF NOT EXISTS {settings.PG_SCHEMA}")
-            cur.execute(
-                f"GRANT ALL ON SCHEMA {settings.PG_SCHEMA} TO {settings.PG_USER}"
+    with get_connection() as conn:
+        try:
+            with conn.cursor() as cur:
+                cur.execute(f"CREATE SCHEMA IF NOT EXISTS {settings.PG_SCHEMA}")
+                cur.execute(
+                    f"GRANT ALL ON SCHEMA {settings.PG_SCHEMA} TO {settings.PG_USER}"
+                )
+                cur.execute(
+                    f"ALTER DEFAULT PRIVILEGES IN SCHEMA {settings.PG_SCHEMA} "
+                    f"GRANT ALL ON TABLES TO {settings.PG_USER}"
+                )
+            conn.commit()
+        except Exception as e:
+            logger.debug(
+                "ensure_tables: schema bootstrap skipped (%s)",
+                e,
+                exc_info=True,
             )
-            cur.execute(
-                f"ALTER DEFAULT PRIVILEGES IN SCHEMA {settings.PG_SCHEMA} "
-                f"GRANT ALL ON TABLES TO {settings.PG_USER}"
-            )
-        conn.commit()
-    except Exception as e:
-        # Schema may already exist; grants may already be applied — proceed to CREATE TABLE
-        logger.debug(
-            "ensure_tables: schema bootstrap skipped (%s)",
-            e,
-            exc_info=True,
-        )
-        conn.rollback()
-    finally:
-        conn.close()
+            conn.rollback()
 
     s = settings.schema_prefix
 
@@ -92,6 +79,10 @@ def ensure_tables() -> None:
             ai_analysis TEXT
         )
     """)
+
+    execute(
+        f"ALTER TABLE {s}analyses ADD COLUMN IF NOT EXISTS owner TEXT"
+    )
 
     for metric_name in METRIC_NAMES:
         execute(f"""
