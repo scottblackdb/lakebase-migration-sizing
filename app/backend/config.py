@@ -10,15 +10,22 @@ class Settings:
     PG_DATABASE: str = os.environ.get("PGDATABASE", "lakebase_sizing")
     #: ``PGUSER`` / ``PG_USER`` (libpq-style or explicit).
     PG_USER: str = os.environ.get("PGUSER") or os.environ.get("PG_USER", "postgres")
-    #: Native Postgres password (``PGPASSWORD`` / ``PG_PASSWORD``).
+    #: Native Postgres password (``PGPASSWORD`` / ``PG_PASSWORD``). Ignored when OAuth is used.
     PG_PASSWORD: str = os.environ.get("PGPASSWORD") or os.environ.get("PG_PASSWORD", "")
     PG_SSLMODE: str = os.environ.get("PGSSLMODE", "require")
     PG_SCHEMA: str = os.environ.get("PGSCHEMA", "estimator")
+    #: Lakebase endpoint resource name — enables OAuth via ``generate_database_credential``.
+    #: Example: ``projects/<id>/branches/<id>/endpoints/<id>`` (Databricks Apps: ``LAKEBASE_ENDPOINT``).
+    LAKEBASE_ENDPOINT: str = os.environ.get("LAKEBASE_ENDPOINT", "")
     FOUNDATION_MODEL: str = os.environ.get("FOUNDATION_MODEL", "databricks-gpt-5-2")
 
     @property
     def schema_prefix(self) -> str:
         return f"{self.PG_SCHEMA}."
+
+    @property
+    def use_lakebase_oauth(self) -> bool:
+        return bool(self.LAKEBASE_ENDPOINT.strip())
 
 
 settings = Settings()

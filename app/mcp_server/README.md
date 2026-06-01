@@ -9,7 +9,7 @@ It uses the same **PostgreSQL** database and tables as `app/main.py` (`backend.c
 
 ## Setup
 
-From the `app/` directory (same env vars as the main API: `PG_HOST`, `PG_DATABASE`, etc.):
+From the `app/` directory (same env vars as the main API: `PGHOST`, `PGDATABASE`, `LAKEBASE_ENDPOINT` for OAuth, or `PGPASSWORD` for local Postgres, etc.):
 
 ```bash
 pip install -r requirements.txt

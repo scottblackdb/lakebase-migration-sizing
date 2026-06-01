@@ -30,3 +30,21 @@ cd app/frontend && bun run build
 Use the path prefix your workspace uses for the app (must end with `/` or Vite will normalize it).
 
 The React app reads the same `BASE_URL` for **`BrowserRouter` basename**, so routes like `/analysis/:id` stay under that prefix. If you set `VITE_BASE_URL` for API/asset URLs but an old build had no basename, refreshing a detail page could request `/analysis/...` at the site root and return `{"detail":"Not Found"}` instead of the SPA.
+
+## Lakebase Postgres (OAuth)
+
+When the app is deployed with a **Lakebase database resource**, Databricks Apps sets `PGHOST`, `PGDATABASE`, `PGUSER`, `PGSSLMODE`, and `LAKEBASE_ENDPOINT`. The backend connects using **short-lived OAuth tokens** from `postgres.generate_database_credential` (refreshed before the 1-hour expiry). Do **not** set `PGPASSWORD` in that mode.
+
+For **local development** against Lakebase, set in your environment (or shell):
+
+```bash
+export PGHOST=<host from: databricks postgres get-endpoint ...>
+export PGPORT=5432
+export PGDATABASE=<database name>
+export PGUSER=<your user or service principal client id>
+export PGSSLMODE=require
+export LAKEBASE_ENDPOINT=projects/<PROJECT_ID>/branches/<BRANCH_ID>/endpoints/<ENDPOINT_ID>
+# Optional local dev: DATABRICKS_HOST + DATABRICKS_TOKEN for SDK auth
+```
+
+For a **local Postgres** without Lakebase, omit `LAKEBASE_ENDPOINT` and use `PGPASSWORD` (or `PG_PASSWORD`) instead.
