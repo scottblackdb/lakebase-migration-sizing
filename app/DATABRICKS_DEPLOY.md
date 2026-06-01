@@ -40,7 +40,7 @@ For **local development** against Lakebase, set in your environment (or shell):
 ```bash
 export PGHOST=<host from: databricks postgres get-endpoint ...>
 export PGPORT=5432
-export PGDATABASE=<database name>
+export PGDATABASE=lakebase_estimator
 export PGUSER=<your user or service principal client id>
 export PGSSLMODE=require
 export LAKEBASE_ENDPOINT=projects/<PROJECT_ID>/branches/<BRANCH_ID>/endpoints/<ENDPOINT_ID>

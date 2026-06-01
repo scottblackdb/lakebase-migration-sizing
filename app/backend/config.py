@@ -7,7 +7,7 @@ class Settings:
     DATABRICKS_TOKEN: str = os.environ.get("DATABRICKS_TOKEN", "")
     PG_HOST: str = os.environ.get("PGHOST", "localhost")
     PG_PORT: int = int(os.environ.get("PGPORT", "5432"))
-    PG_DATABASE: str = os.environ.get("PGDATABASE", "lakebase_sizing")
+    PG_DATABASE: str = os.environ.get("PGDATABASE", "lakebase_estimator")
     #: ``PGUSER`` / ``PG_USER`` (libpq-style or explicit).
     PG_USER: str = os.environ.get("PGUSER") or os.environ.get("PG_USER", "postgres")
     #: Native Postgres password (``PGPASSWORD`` / ``PG_PASSWORD``). Ignored when OAuth is used.

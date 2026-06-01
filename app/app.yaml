@@ -23,6 +23,7 @@ env:
   - name: PGPORT
     description: Postgres port (default 5432)
   - name: PGDATABASE
+    value: lakebase_estimator
     description: Postgres database name
   - name: PGUSER
     description: Postgres user (service principal client ID when deployed as a Databricks App)
