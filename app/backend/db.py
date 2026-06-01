@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from typing import Any, Sequence
 
 import psycopg
 from psycopg.rows import dict_row
@@ -28,15 +29,24 @@ def get_connection():
         conn.close()
 
 
-def execute(query: str) -> None:
+def execute(query: str, params: Sequence[Any] | None = None) -> None:
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            cursor.execute(query)
+            cursor.execute(query, params)
         conn.commit()
 
 
-def fetchall(query: str) -> list[dict]:
+def executemany(query: str, params_seq: Sequence[Sequence[Any]]) -> None:
+    if not params_seq:
+        return
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.executemany(query, params_seq)
+        conn.commit()
+
+
+def fetchall(query: str, params: Sequence[Any] | None = None) -> list[dict]:
     with get_connection() as conn:
         with conn.cursor(row_factory=dict_row) as cursor:
-            cursor.execute(query)
+            cursor.execute(query, params)
             return [dict(row) for row in cursor.fetchall()]

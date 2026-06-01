@@ -20,6 +20,7 @@ METRIC_NAMES = [
     "xact_commit",
     "blks_hit",
     "blks_read",
+    "cache_hit_ratio",
 ]
 
 DISPLAY_NAMES = {
@@ -33,6 +34,7 @@ DISPLAY_NAMES = {
     "xact_commit": "Transactions Committed Per Second",
     "blks_hit": "Buffer Cache Blocks Hit",
     "blks_read": "Disk Blocks Read",
+    "cache_hit_ratio": "Buffer Cache Hit Ratio",
 }
 
 

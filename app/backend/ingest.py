@@ -7,21 +7,23 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException
 
-from backend.db import execute
+from backend.db import execute, executemany
 from backend.models import UploadResponse
 from backend.tables import METRIC_NAMES
 
 BATCH_SIZE = 500
 
 
-def _escape(value: str) -> str:
-    return value.replace("'", "''")
-
-
-def _sql_val(v) -> str:
-    if v is None:
-        return "NULL"
-    return str(v)
+def _coerce_optional_int(value, field_name: str) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError) as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid {field_name}: must be an integer",
+        ) from e
 
 
 def _insert_metric_batch(
@@ -31,22 +33,26 @@ def _insert_metric_batch(
         return
 
     table = f"{schema_prefix}metric_{metric_name}"
+    sql = (
+        f"INSERT INTO {table} "
+        f"(analysis_id, timestamp, average, maximum, minimum) "
+        f"VALUES (%s, %s, %s, %s, %s)"
+    )
 
-    for i in range(0, len(rows), BATCH_SIZE):
-        batch = rows[i : i + BATCH_SIZE]
-        values = []
-        for r in batch:
-            ts = _escape(str(r.get("timestamp", "")))
-            avg = _sql_val(r.get("average"))
-            mx = _sql_val(r.get("maximum"))
-            mn = _sql_val(r.get("minimum"))
-            values.append(f"('{analysis_id}', '{ts}', {avg}, {mx}, {mn})")
-
-        sql_stmt = (
-            f"INSERT INTO {table} (analysis_id, timestamp, average, maximum, minimum) "
-            f"VALUES {', '.join(values)}"
+    params: list[tuple] = []
+    for r in rows:
+        params.append(
+            (
+                analysis_id,
+                str(r.get("timestamp", "")),
+                r.get("average"),
+                r.get("maximum"),
+                r.get("minimum"),
+            )
         )
-        execute(sql_stmt)
+
+    for i in range(0, len(params), BATCH_SIZE):
+        executemany(sql, params[i : i + BATCH_SIZE])
 
 
 def ingest_metrics_payload(
@@ -67,32 +73,47 @@ def ingest_metrics_payload(
     analysis_id = uuid.uuid4().hex[:12]
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    server_name = _escape(data["server_name"])
-    granularity = _escape(data.get("granularity", ""))
-    start_time = _escape(data.get("start_time", ""))
-    end_time = _escape(data.get("end_time", ""))
+    server_name = str(data["server_name"])
+    granularity = str(data.get("granularity") or "")
+    start_time = str(data.get("start_time") or "")
+    end_time = str(data.get("end_time") or "")
 
     server_config = data.get("server_config", {})
-    sku_name = _escape(str(server_config.get("sku_name") or ""))
-    sku_tier = _escape(str(server_config.get("sku_tier") or ""))
-    vm_type = _escape(str(server_config.get("vm_type") or ""))
-    vcores = server_config.get("vcores")
-    memory_gb = server_config.get("memory_gb")
-    storage_size_gb = server_config.get("storage_size_gb")
-    region = _escape(str(server_config.get("region") or ""))
+    sku_name = str(server_config.get("sku_name") or "")
+    sku_tier = str(server_config.get("sku_tier") or "")
+    vm_type = str(server_config.get("vm_type") or "")
+    vcores = _coerce_optional_int(server_config.get("vcores"), "vcores")
+    memory_gb = _coerce_optional_int(server_config.get("memory_gb"), "memory_gb")
+    storage_size_gb = _coerce_optional_int(
+        server_config.get("storage_size_gb"), "storage_size_gb"
+    )
+    region = str(server_config.get("region") or "")
     normalized_group = group_name.strip()
-    group_name_sql = f"'{_escape(normalized_group)}'" if normalized_group else "NULL"
     normalized_owner = (owner or "").strip()
-    owner_sql = f"'{_escape(normalized_owner)}'" if normalized_owner else "NULL"
 
     execute(
         f"INSERT INTO {s}analyses "
         f"(analysis_id, group_name, owner, server_name, granularity, "
-        f"start_time, end_time, created_at, sku_name, sku_tier, vm_type, vcores, memory_gb, storage_size_gb, region) "
-        f"VALUES ('{analysis_id}', {group_name_sql}, {owner_sql}, '{server_name}', '{granularity}', "
-        f"'{start_time}', '{end_time}', '{now}', "
-        f"'{sku_name}', '{sku_tier}', '{vm_type}', {vcores if vcores is not None else 'NULL'}, "
-        f"{memory_gb if memory_gb is not None else 'NULL'}, {storage_size_gb if storage_size_gb is not None else 'NULL'}, '{region}')"
+        f"start_time, end_time, created_at, sku_name, sku_tier, vm_type, "
+        f"vcores, memory_gb, storage_size_gb, region) "
+        f"VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+        (
+            analysis_id,
+            normalized_group or None,
+            normalized_owner or None,
+            server_name,
+            granularity,
+            start_time,
+            end_time,
+            now,
+            sku_name,
+            sku_tier,
+            vm_type,
+            vcores,
+            memory_gb,
+            storage_size_gb,
+            region,
+        ),
     )
 
     metrics_loaded = []

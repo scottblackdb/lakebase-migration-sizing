@@ -14,6 +14,7 @@ import {
   FormControlLabel,
   Checkbox,
   Alert,
+  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import StorageIcon from "@mui/icons-material/Storage";
@@ -39,12 +40,15 @@ import {
   LAKEBASE_ESTIMATE_DEFAULT_SAFETY_MARGIN_PCT,
   LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO,
   LAKEBASE_CU_HIGH_USAGE_THRESHOLD,
+  LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT,
+  LAKEBASE_BRANCHED_STORAGE_FRACTION,
   tryComputeLakebaseEstimateFromMetrics,
   type LakebaseEstimatePoint,
   lakebaseMonthlyCuCostUsdAfterUptimeDiscount,
   lakebaseStorageMonthlyCostUsd,
   lakebaseStorageUsdPerGb,
   lakebaseTotalMonthlyCostUsdAfterUptimeDiscount,
+  effectiveStorageGbForLakebaseSizing,
 } from "../lib/lakebaseEstimate";
 
 /** Recharts series row: X-axis label + estimate point fields. */
@@ -81,6 +85,7 @@ export default function LakebaseEstimateModal({
   const [scaleToZero, setScaleToZero] = useState<boolean>(
     LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO
   );
+  const [isBranchedDatabase, setIsBranchedDatabase] = useState(false);
 
   const {
     displayData,
@@ -132,14 +137,21 @@ export default function LakebaseEstimateModal({
     };
   }, [cpuMetric, vcores, safetyMarginPct, scaleToZero]);
 
+  const storageForSizing = effectiveStorageGbForLakebaseSizing(
+    storageGb,
+    isBranchedDatabase
+  );
   const cuCostMonthly = lakebaseMonthlyCuCostUsdAfterUptimeDiscount(
     monthlyCU,
     qualifiesFor100PercentUptimeDiscount
   );
-  const storageCostMonthly = lakebaseStorageMonthlyCostUsd(storageGb, skuName);
+  const storageCostMonthly = lakebaseStorageMonthlyCostUsd(
+    storageForSizing,
+    skuName
+  );
   const totalMonthly = lakebaseTotalMonthlyCostUsdAfterUptimeDiscount(
     monthlyCU,
-    storageGb,
+    storageForSizing,
     skuName,
     qualifiesFor100PercentUptimeDiscount
   );
@@ -187,11 +199,15 @@ export default function LakebaseEstimateModal({
             variant="outlined"
           />
           {qualifiesFor100PercentUptimeDiscount && (
-            <Chip
-              label="100% Uptime Discount"
-              size="small"
-              sx={{ backgroundColor: "#00A972", color: "#fff", fontWeight: 600 }}
-            />
+            <Tooltip
+              title={`${LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT}% compute discount — no intervals qualify for scale to zero (100% uptime).`}
+            >
+              <Chip
+                label="100% Uptime Discount"
+                size="small"
+                sx={{ backgroundColor: "#00A972", color: "#fff", fontWeight: 600 }}
+              />
+            </Tooltip>
           )}
         </Box>
 
@@ -292,10 +308,14 @@ export default function LakebaseEstimateModal({
               elevation={0}
             >
               <Typography variant="caption" sx={{ color: "#A0ACBE" }}>
-                {storageGb != null ? `${storageGb} GB x $${storageRate}/GB` : "Storage N/A"}
+                {storageForSizing != null
+                  ? isBranchedDatabase && storageGb != null
+                    ? `${storageForSizing} GB (${LAKEBASE_BRANCHED_STORAGE_FRACTION * 100}% of ${storageGb} GB) x $${storageRate}/GB`
+                    : `${storageForSizing} GB x $${storageRate}/GB`
+                  : "Storage N/A"}
               </Typography>
               <Typography variant="h5" fontWeight={700} color="#00A972">
-                {storageGb != null
+                {storageForSizing != null
                   ? `$${storageCostMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                   : "—"}
               </Typography>
@@ -357,7 +377,7 @@ export default function LakebaseEstimateModal({
         </Box>
 
         {/* Safety margin & scale-to-zero inputs */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, flexWrap: "wrap" }}>
           <TextField
             label="Safety Margin %"
             type="number"
@@ -370,16 +390,42 @@ export default function LakebaseEstimateModal({
             slotProps={{ htmlInput: { min: 0, max: 200, step: 5 } }}
             sx={{ width: 160 }}
           />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={scaleToZero}
-                onChange={(e) => setScaleToZero(e.target.checked)}
-                sx={{ color: "#00A972", "&.Mui-checked": { color: "#00A972" } }}
-              />
+          <Tooltip
+            title={
+              usedPeakCuConstantSizing
+                ? `Disabled — an interval needs ${LAKEBASE_CU_HIGH_USAGE_THRESHOLD}+ CUs; scale to zero cannot apply.`
+                : ""
             }
-            label={<Typography variant="body2">Scale to Zero ({"\u2264"} {LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES} cores = 0 CU)</Typography>}
-          />
+          >
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={scaleToZero}
+                  disabled={usedPeakCuConstantSizing}
+                  onChange={(e) => setScaleToZero(e.target.checked)}
+                  sx={{ color: "#00A972", "&.Mui-checked": { color: "#00A972" } }}
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  Scale to Zero ({"\u2264"} {LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES} cores = 0 CU)
+                  {usedPeakCuConstantSizing ? " — overridden" : ""}
+                </Typography>
+              }
+            />
+          </Tooltip>
+          <Tooltip title={`Branched DB: storage $/mo uses ${LAKEBASE_BRANCHED_STORAGE_FRACTION * 100}% of reported GB`}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={isBranchedDatabase}
+                  onChange={(e) => setIsBranchedDatabase(e.target.checked)}
+                  sx={{ color: "#00A972", "&.Mui-checked": { color: "#00A972" } }}
+                />
+              }
+              label={<Typography variant="body2">Branched database</Typography>}
+            />
+          </Tooltip>
           <Typography variant="body2" color="text.secondary">
             Applied on top of peak CPU cores per period.
           </Typography>

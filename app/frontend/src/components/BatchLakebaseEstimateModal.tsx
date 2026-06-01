@@ -32,6 +32,7 @@ import {
   LAKEBASE_ESTIMATE_DEFAULT_SAFETY_MARGIN_PCT,
   LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO,
   LAKEBASE_CU_HIGH_USAGE_THRESHOLD,
+  LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT,
   LAKEBASE_BRANCHED_STORAGE_FRACTION,
   tryComputeLakebaseEstimateFromMetrics,
   lakebaseMonthlyCuCostUsdAfterUptimeDiscount,
@@ -380,41 +381,58 @@ export default function BatchLakebaseEstimateModal({
                         {a.vcores != null ? `${a.vcores} vCores` : "vCores —"}
                       </Typography>
                       {row?.ok && row.qualifiesFor100PercentUptimeDiscount && (
-                        <Chip
-                          label="100% Uptime Discount"
-                          size="small"
-                          sx={{
-                            mt: 0.5,
-                            backgroundColor: "#00A972",
-                            color: "#fff",
-                            fontWeight: 600,
-                            height: 22,
-                            fontSize: "0.7rem",
-                          }}
-                        />
+                        <Tooltip
+                          title={`${LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT}% compute discount — no intervals qualify for scale to zero (100% uptime).`}
+                        >
+                          <Chip
+                            label="100% Uptime Discount"
+                            size="small"
+                            sx={{
+                              mt: 0.5,
+                              backgroundColor: "#00A972",
+                              color: "#fff",
+                              fontWeight: 600,
+                              height: 22,
+                              fontSize: "0.7rem",
+                            }}
+                          />
+                        </Tooltip>
                       )}
                     </TableCell>
                     <TableCell align="center">
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={scaleToZeroUi}
-                            onChange={(_, c) =>
-                              handleAutoscaleChange(a.analysis_id, c)
-                            }
-                            size="small"
-                            sx={{
-                              "& .MuiSwitch-switchBase.Mui-checked": {
-                                color: "#00A972",
-                              },
-                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                                { backgroundColor: "#00A972" },
-                            }}
-                          />
+                      <Tooltip
+                        title={
+                          row?.ok && row.usedPeakCuConstantSizing
+                            ? `Disabled — an interval needs ${LAKEBASE_CU_HIGH_USAGE_THRESHOLD}+ CUs; scale to zero cannot apply.`
+                            : ""
                         }
-                        label=""
-                        sx={{ m: 0 }}
-                      />
+                      >
+                        <span>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={scaleToZeroUi}
+                                disabled={Boolean(
+                                  row?.ok && row.usedPeakCuConstantSizing
+                                )}
+                                onChange={(_, c) =>
+                                  handleAutoscaleChange(a.analysis_id, c)
+                                }
+                                size="small"
+                                sx={{
+                                  "& .MuiSwitch-switchBase.Mui-checked": {
+                                    color: "#00A972",
+                                  },
+                                  "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
+                                    { backgroundColor: "#00A972" },
+                                }}
+                              />
+                            }
+                            label=""
+                            sx={{ m: 0 }}
+                          />
+                        </span>
+                      </Tooltip>
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Use 10% of reported storage for storage cost on this database">

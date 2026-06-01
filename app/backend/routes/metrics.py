@@ -10,6 +10,15 @@ router = APIRouter()
 s = settings.schema_prefix
 
 
+def _require_analysis(analysis_id: str) -> None:
+    rows = fetchall(
+        f"SELECT 1 FROM {s}analyses WHERE analysis_id = %s LIMIT 1",
+        (analysis_id,),
+    )
+    if not rows:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+
 @router.get(
     "/analyses/{analysis_id}/metrics/{metric_name}", response_model=MetricResponse
 )
@@ -20,11 +29,14 @@ def get_metric(analysis_id: str, metric_name: str):
             detail=f"Invalid metric: {metric_name}. Valid: {METRIC_NAMES}",
         )
 
+    _require_analysis(analysis_id)
+
     rows = fetchall(
         f"SELECT timestamp, average, maximum, minimum "
         f"FROM {s}metric_{metric_name} "
-        f"WHERE analysis_id = '{analysis_id}' "
-        f"ORDER BY timestamp"
+        f"WHERE analysis_id = %s "
+        f"ORDER BY timestamp",
+        (analysis_id,),
     )
 
     return MetricResponse(
@@ -37,6 +49,7 @@ def get_metric(analysis_id: str, metric_name: str):
 
 @router.get("/analyses/{analysis_id}/metrics", response_model=list[MetricResponse])
 def get_all_metrics(analysis_id: str):
+    _require_analysis(analysis_id)
     results = []
     for metric_name in METRIC_NAMES:
         results.append(get_metric(analysis_id, metric_name))

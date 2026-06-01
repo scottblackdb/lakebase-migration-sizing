@@ -16,6 +16,7 @@ LAKEBASE_CU_USD_PER_UNIT = 0.111
 LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT = 25
 LAKEBASE_STORAGE_USD_PER_GB_AWS = 0.345
 LAKEBASE_STORAGE_USD_PER_GB_DEFAULT = 0.39
+LAKEBASE_BRANCHED_STORAGE_FRACTION = 0.1
 
 
 def is_aws_sku(sku_name: str | None) -> bool:
@@ -217,6 +218,16 @@ def storage_monthly_cost_usd(storage_gb: int | None, sku_name: str | None) -> fl
     if storage_gb is None:
         return 0.0
     return storage_gb * lakebase_storage_usd_per_gb(sku_name)
+
+
+def effective_storage_gb_for_lakebase_sizing(
+    storage_gb: int | None, is_branched_database: bool
+) -> int | None:
+    if storage_gb is None:
+        return None
+    if not is_branched_database:
+        return storage_gb
+    return max(0, int(round(storage_gb * LAKEBASE_BRANCHED_STORAGE_FRACTION)))
 
 
 def total_monthly_cost_usd(

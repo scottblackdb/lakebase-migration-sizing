@@ -61,13 +61,17 @@ class EstimateBody(BaseModel):
     analysis_id: str
     safety_margin_pct: float = 15.0
     scale_to_zero: bool = True
+    branched_database: bool = False
 
 
 @app.post("/mcp/v1/lakebase-estimate")
 def http_lakebase_estimate(body: EstimateBody):
     try:
         return services.get_lakebase_estimate_dict(
-            body.analysis_id, body.safety_margin_pct, body.scale_to_zero
+            body.analysis_id,
+            body.safety_margin_pct,
+            body.scale_to_zero,
+            body.branched_database,
         )
     except ValueError as e:
         msg = str(e).lower()

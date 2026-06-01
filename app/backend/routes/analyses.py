@@ -22,17 +22,13 @@ ALLOWED_BATCH_DELETE_EMAIL = "scott.black@databricks.com"
 BATCH_DELETE_MAX = 100
 
 
-def _escape(value: str) -> str:
-    return value.replace("'", "''")
-
-
-def _delete_analysis_cascade(escaped_analysis_id: str) -> None:
+def _delete_analysis_cascade(analysis_id: str) -> None:
     for metric_name in METRIC_NAMES:
         execute(
-            f"DELETE FROM {s}metric_{metric_name} "
-            f"WHERE analysis_id = '{escaped_analysis_id}'"
+            f"DELETE FROM {s}metric_{metric_name} WHERE analysis_id = %s",
+            (analysis_id,),
         )
-    execute(f"DELETE FROM {s}analyses WHERE analysis_id = '{escaped_analysis_id}'")
+    execute(f"DELETE FROM {s}analyses WHERE analysis_id = %s", (analysis_id,))
 
 
 @router.get("/me", response_model=CurrentUser, operation_id="get_current_user")
@@ -72,13 +68,13 @@ def batch_delete_analyses(request: Request, body: BatchDeleteAnalysesRequest):
         )
     deleted_ids: list[str] = []
     for aid in seen:
-        esc = _escape(aid)
         existing = fetchall(
-            f"SELECT analysis_id FROM {s}analyses WHERE analysis_id = '{esc}' LIMIT 1"
+            f"SELECT analysis_id FROM {s}analyses WHERE analysis_id = %s LIMIT 1",
+            (aid,),
         )
         if not existing:
             continue
-        _delete_analysis_cascade(esc)
+        _delete_analysis_cascade(aid)
         deleted_ids.append(aid)
     return BatchDeleteAnalysesResponse(
         deleted=len(deleted_ids),
@@ -104,8 +100,9 @@ def list_group_names():
 
 @router.get("/analyses/{analysis_id}", response_model=AnalysisSummary)
 def get_analysis(analysis_id: str):
-    aid = _escape(analysis_id)
-    rows = fetchall(f"SELECT * FROM {s}analyses WHERE analysis_id = '{aid}'")
+    rows = fetchall(
+        f"SELECT * FROM {s}analyses WHERE analysis_id = %s", (analysis_id,)
+    )
     if not rows:
         raise HTTPException(status_code=404, detail="Analysis not found")
     return rows[0]
@@ -118,27 +115,44 @@ def update_analysis_group(analysis_id: str, body: GroupNameUpdate):
         raise HTTPException(
             status_code=400, detail="group_name is required and cannot be blank"
         )
-    aid = _escape(analysis_id)
-    g = _escape(normalized)
-    existing = fetchall(f"SELECT * FROM {s}analyses WHERE analysis_id = '{aid}'")
+    existing = fetchall(
+        f"SELECT * FROM {s}analyses WHERE analysis_id = %s", (analysis_id,)
+    )
     if not existing:
         raise HTTPException(status_code=404, detail="Analysis not found")
-    execute(f"UPDATE {s}analyses SET group_name = '{g}' WHERE analysis_id = '{aid}'")
-    rows = fetchall(f"SELECT * FROM {s}analyses WHERE analysis_id = '{aid}'")
+    execute(
+        f"UPDATE {s}analyses SET group_name = %s WHERE analysis_id = %s",
+        (normalized, analysis_id),
+    )
+    rows = fetchall(
+        f"SELECT * FROM {s}analyses WHERE analysis_id = %s", (analysis_id,)
+    )
     return rows[0]
 
 
-@router.patch("/analyses/{analysis_id}/owner", response_model=AnalysisSummary, operation_id="update_analysis_owner")
+@router.patch(
+    "/analyses/{analysis_id}/owner",
+    response_model=AnalysisSummary,
+    operation_id="update_analysis_owner",
+)
 def update_analysis_owner(analysis_id: str, body: OwnerUpdate):
-    aid = _escape(analysis_id)
-    existing = fetchall(f"SELECT * FROM {s}analyses WHERE analysis_id = '{aid}'")
+    existing = fetchall(
+        f"SELECT * FROM {s}analyses WHERE analysis_id = %s", (analysis_id,)
+    )
     if not existing:
         raise HTTPException(status_code=404, detail="Analysis not found")
     normalized = body.owner.strip()
     if not normalized:
-        execute(f"UPDATE {s}analyses SET owner = NULL WHERE analysis_id = '{aid}'")
+        execute(
+            f"UPDATE {s}analyses SET owner = NULL WHERE analysis_id = %s",
+            (analysis_id,),
+        )
     else:
-        o = _escape(normalized)
-        execute(f"UPDATE {s}analyses SET owner = '{o}' WHERE analysis_id = '{aid}'")
-    rows = fetchall(f"SELECT * FROM {s}analyses WHERE analysis_id = '{aid}'")
+        execute(
+            f"UPDATE {s}analyses SET owner = %s WHERE analysis_id = %s",
+            (normalized, analysis_id),
+        )
+    rows = fetchall(
+        f"SELECT * FROM {s}analyses WHERE analysis_id = %s", (analysis_id,)
+    )
     return rows[0]

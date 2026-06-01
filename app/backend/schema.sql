@@ -107,3 +107,11 @@ CREATE TABLE IF NOT EXISTS metric_blks_read (
     maximum DOUBLE PRECISION,
     minimum DOUBLE PRECISION
 );
+
+CREATE TABLE IF NOT EXISTS metric_cache_hit_ratio (
+    analysis_id TEXT,
+    timestamp TEXT,
+    average DOUBLE PRECISION,
+    maximum DOUBLE PRECISION,
+    minimum DOUBLE PRECISION
+);

@@ -26,8 +26,9 @@ def _build_cpu_summary(analysis_id: str) -> dict:
     rows = fetchall(
         f"SELECT timestamp, average, maximum, minimum "
         f"FROM {s}metric_cpu_percent "
-        f"WHERE analysis_id = '{analysis_id}' "
-        f"ORDER BY timestamp"
+        f"WHERE analysis_id = %s "
+        f"ORDER BY timestamp",
+        (analysis_id,),
     )
 
     if not rows:
@@ -113,18 +114,13 @@ def _call_foundation_model(prompt: str) -> str:
     return data["choices"][0]["message"]["content"]
 
 
-def _escape(value: str) -> str:
-    return value.replace("'", "''").replace("\\", "\\\\")
-
-
 @router.post(
     "/analyses/{analysis_id}/ai-analysis", response_model=AiAnalysisResponse
 )
 def generate_ai_analysis(analysis_id: str):
-    # Fetch analysis metadata
     s = settings.schema_prefix
     rows = fetchall(
-        f"SELECT * FROM {s}analyses WHERE analysis_id = '{analysis_id}'"
+        f"SELECT * FROM {s}analyses WHERE analysis_id = %s", (analysis_id,)
     )
     if not rows:
         raise HTTPException(status_code=404, detail="Analysis not found")
@@ -136,12 +132,10 @@ def generate_ai_analysis(analysis_id: str):
             status_code=400, detail="No vCores info available for this analysis"
         )
 
-    # Build CPU summary
     cpu_summary = _build_cpu_summary(analysis_id)
     if "error" in cpu_summary:
         raise HTTPException(status_code=400, detail=cpu_summary["error"])
 
-    # Build the user prompt
     user_prompt = (
         f"Server: {analysis.get('server_name')}\n"
         f"Region: {analysis.get('region')}\n"
@@ -154,15 +148,11 @@ def generate_ai_analysis(analysis_id: str):
         f"CPU Utilization Summary:\n{json.dumps(cpu_summary, indent=2)}"
     )
 
-    # Call the foundation model
     ai_response = _call_foundation_model(user_prompt)
 
-    # Save to analyses table
-    escaped = _escape(ai_response)
     execute(
-        f"UPDATE {s}analyses "
-        f"SET ai_analysis = '{escaped}' "
-        f"WHERE analysis_id = '{analysis_id}'"
+        f"UPDATE {s}analyses SET ai_analysis = %s WHERE analysis_id = %s",
+        (ai_response, analysis_id),
     )
 
     return AiAnalysisResponse(analysis_id=analysis_id, ai_analysis=ai_response)

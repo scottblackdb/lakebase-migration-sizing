@@ -60,19 +60,27 @@ METRICS = {
         "display_name": "Transactions Committed Per Second",
         "namespace": "AWS/RDS",
         "metric_name": "DatabaseConnections",
-        "note": "RDS does not expose xact_commit directly; using DatabaseConnections as proxy",
+        "note": "RDS does not expose xact_commit directly; metric omitted from export",
+        "omit_from_export": True,
     },
     "blks_hit": {
         "display_name": "Buffer Cache Blocks Hit",
         "namespace": "AWS/RDS",
         "metric_name": "BufferCacheHitRatio",
-        "note": "RDS exposes cache hit ratio rather than raw block counts",
+        "note": "Use cache_hit_ratio instead of block-count proxy metrics",
+        "omit_from_export": True,
     },
     "blks_read": {
         "display_name": "Disk Blocks Read",
         "namespace": "AWS/RDS",
         "metric_name": "DiskQueueDepth",
-        "note": "RDS does not expose blks_read directly; using DiskQueueDepth as proxy",
+        "note": "Use cache_hit_ratio instead of block-count proxy metrics",
+        "omit_from_export": True,
+    },
+    "cache_hit_ratio": {
+        "display_name": "Buffer Cache Hit Ratio",
+        "namespace": "AWS/RDS",
+        "metric_name": "BufferCacheHitRatio",
     },
 }
 
@@ -470,6 +478,8 @@ def export_metrics(
             continue
         if key == "storage_used":
             continue
+        if spec.get("omit_from_export"):
+            continue
 
         print(f"Querying {spec['display_name']} ({spec['metric_name']}) ...")
         rows = query_metric(
@@ -509,9 +519,7 @@ def export_metrics(
     processed["read_iops"] = raw_data.get("read_iops", [])
     processed["write_iops"] = raw_data.get("write_iops", [])
 
-    processed["xact_commit"] = raw_data.get("xact_commit", [])
-    processed["blks_hit"] = raw_data.get("blks_hit", [])
-    processed["blks_read"] = raw_data.get("blks_read", [])
+    processed["cache_hit_ratio"] = raw_data.get("cache_hit_ratio", [])
 
     output = {
         "server_name": db_instance_id,
@@ -523,6 +531,8 @@ def export_metrics(
     }
 
     for key, spec in METRICS.items():
+        if spec.get("omit_from_export"):
+            continue
         rows = processed.get(key, [])
         tagged_rows = [{**r, "metric": key} for r in rows]
         output["metrics"][key] = {

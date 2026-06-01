@@ -157,11 +157,14 @@ export default function AnalysisDetail() {
     Boolean(analysis.vcores && cpuMetric && cpuMetric.data_points > 0);
   const blocksHitMetric = metrics.find((m) => m.metric_name === "blks_hit");
   const blocksReadMetric = metrics.find((m) => m.metric_name === "blks_read");
+  const cacheHitRatioMetric = metrics.find((m) => m.metric_name === "cache_hit_ratio");
+  const hasDirectCacheHitRatio =
+    Boolean(cacheHitRatioMetric && cacheHitRatioMetric.data_points > 0);
   const hasCacheMetricDefinitions = !!blocksHitMetric && !!blocksReadMetric;
   const hasCacheHitMetrics =
     hasCacheMetricDefinitions &&
-    blocksHitMetric.data_points > 0 &&
-    blocksReadMetric.data_points > 0;
+    blocksHitMetric!.data_points > 0 &&
+    blocksReadMetric!.data_points > 0;
 
   return (
     <>
@@ -241,21 +244,25 @@ export default function AnalysisDetail() {
         <CpuCapacityChart cpuMetric={cpuMetric} vcores={analysis.vcores} />
       )}
 
-      {hasCacheHitMetrics && blocksHitMetric && blocksReadMetric && (
+      {hasDirectCacheHitRatio && cacheHitRatioMetric && (
+        <CacheHitRatioChart cacheHitRatioMetric={cacheHitRatioMetric} />
+      )}
+
+      {!hasDirectCacheHitRatio && hasCacheHitMetrics && blocksHitMetric && blocksReadMetric && (
         <CacheHitRatioChart
           blocksHitMetric={blocksHitMetric}
           blocksReadMetric={blocksReadMetric}
         />
       )}
 
-      {hasCacheMetricDefinitions && !hasCacheHitMetrics && (
+      {!hasDirectCacheHitRatio && !hasCacheHitMetrics && (
         <Paper sx={{ p: 2.5, mb: 3 }}>
           <Typography variant="subtitle1" fontWeight={700} gutterBottom>
             Database Cache Hit Ratio
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            This analysis does not include cache block metrics (`blks_hit`,
-            `blks_read`) with data points, so cache hit ratio cannot be shown.
+            This analysis does not include `cache_hit_ratio` or matching
+            `blks_hit` / `blks_read` data, so cache hit ratio cannot be shown.
           </Typography>
         </Paper>
       )}
@@ -266,7 +273,8 @@ export default function AnalysisDetail() {
             (m) =>
               m.data_points > 0 &&
               m.metric_name !== "blks_hit" &&
-              m.metric_name !== "blks_read"
+              m.metric_name !== "blks_read" &&
+              m.metric_name !== "cache_hit_ratio"
           )
           .map((m) => (
             <Grid key={m.metric_name} size={{ xs: 12, md: 6 }}>

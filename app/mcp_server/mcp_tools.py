@@ -40,6 +40,7 @@ def get_lakebase_estimate(
     analysis_id: str,
     safety_margin_pct: float = 15.0,
     scale_to_zero: bool = True,
+    branched_database: bool = False,
 ) -> str:
     """
     Compute Lakebase monthly CU and estimated USD cost for a previously uploaded analysis.
@@ -49,12 +50,13 @@ def get_lakebase_estimate(
         safety_margin_pct: Applied to peak cores per interval (default 15).
         scale_to_zero: When True, idle intervals (very low CPU) count as 0 CU unless
             any interval needs 32+ CUs (then scale-to-zero is disabled and peak sizing applies).
+        branched_database: When True, storage cost uses 10% of reported storage GB.
 
     Returns:
         JSON string with estimate breakdown and costs_usd_per_month.
     """
     return services.get_lakebase_estimate_json(
-        analysis_id, safety_margin_pct, scale_to_zero
+        analysis_id, safety_margin_pct, scale_to_zero, branched_database
     )
 
 

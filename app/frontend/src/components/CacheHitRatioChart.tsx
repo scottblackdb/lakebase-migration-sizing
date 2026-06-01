@@ -14,19 +14,35 @@ import { downsampleChartData } from "../lib/chartDownsample";
 import { formatChartTimestamp } from "../lib/formatTimestamp";
 
 interface Props {
-  blocksHitMetric: MetricResponse;
-  blocksReadMetric: MetricResponse;
+  blocksHitMetric?: MetricResponse;
+  blocksReadMetric?: MetricResponse;
+  /** When set (e.g. AWS RDS), values are already cache hit ratio percentages. */
+  cacheHitRatioMetric?: MetricResponse;
 }
 
-export default function CacheHitRatioChart({
-  blocksHitMetric,
-  blocksReadMetric,
-}: Props) {
+function chartDataFromDirectRatio(metric: MetricResponse) {
+  return metric.data
+    .filter((p) => p.average != null || p.maximum != null || p.minimum != null)
+    .map((p) => ({
+      ts: formatChartTimestamp(p.timestamp),
+      averageRatio:
+        p.average != null ? Math.round(p.average * 100) / 100 : null,
+      maximumRatio:
+        p.maximum != null ? Math.round(p.maximum * 100) / 100 : null,
+      minimumRatio:
+        p.minimum != null ? Math.round(p.minimum * 100) / 100 : null,
+    }));
+}
+
+function chartDataFromBlockCounts(
+  blocksHitMetric: MetricResponse,
+  blocksReadMetric: MetricResponse
+) {
   const blocksReadByTimestamp = new Map(
     blocksReadMetric.data.map((d) => [d.timestamp, d])
   );
 
-  const chartData = blocksHitMetric.data
+  return blocksHitMetric.data
     .map((hitPoint) => {
       const readPoint = blocksReadByTimestamp.get(hitPoint.timestamp);
       if (!readPoint || hitPoint.average == null || readPoint.average == null) {
@@ -61,6 +77,19 @@ export default function CacheHitRatioChart({
       };
     })
     .filter((d): d is NonNullable<typeof d> => d !== null);
+}
+
+export default function CacheHitRatioChart({
+  blocksHitMetric,
+  blocksReadMetric,
+  cacheHitRatioMetric,
+}: Props) {
+  const chartData =
+    cacheHitRatioMetric != null
+      ? chartDataFromDirectRatio(cacheHitRatioMetric)
+      : blocksHitMetric != null && blocksReadMetric != null
+        ? chartDataFromBlockCounts(blocksHitMetric, blocksReadMetric)
+        : [];
 
   const displayData = downsampleChartData(chartData);
 
@@ -71,7 +100,7 @@ export default function CacheHitRatioChart({
           Database Cache Hit Ratio
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Cache hit ratio could not be calculated because matching blocks hit/read
+          Cache hit ratio could not be calculated because matching cache hit
           data points were not available for this analysis.
         </Typography>
       </Paper>
