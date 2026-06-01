@@ -41,10 +41,10 @@ import {
   LAKEBASE_CU_HIGH_USAGE_THRESHOLD,
   tryComputeLakebaseEstimateFromMetrics,
   type LakebaseEstimatePoint,
-  lakebaseMonthlyCuCostUsd,
+  lakebaseMonthlyCuCostUsdAfterUptimeDiscount,
   lakebaseStorageMonthlyCostUsd,
   lakebaseStorageUsdPerGb,
-  lakebaseTotalMonthlyCostUsd,
+  lakebaseTotalMonthlyCostUsdAfterUptimeDiscount,
 } from "../lib/lakebaseEstimate";
 
 /** Recharts series row: X-axis label + estimate point fields. */
@@ -93,6 +93,7 @@ export default function LakebaseEstimateModal({
     usedPeakCuConstantSizing,
     peakPeriodLakebaseCU,
     periodsPerMonth,
+    qualifiesFor100PercentUptimeDiscount,
   } = useMemo(() => {
     const t = tryComputeLakebaseEstimateFromMetrics(
       [cpuMetric],
@@ -111,6 +112,7 @@ export default function LakebaseEstimateModal({
         usedPeakCuConstantSizing: false,
         peakPeriodLakebaseCU: 0,
         periodsPerMonth: 0,
+        qualifiesFor100PercentUptimeDiscount: false,
       };
     }
     const { points, metrics } = t.result;
@@ -125,12 +127,22 @@ export default function LakebaseEstimateModal({
       usedPeakCuConstantSizing: metrics.usedPeakCuConstantSizing,
       peakPeriodLakebaseCU: metrics.peakPeriodLakebaseCU,
       periodsPerMonth: metrics.periodsPerMonth,
+      qualifiesFor100PercentUptimeDiscount:
+        metrics.qualifiesFor100PercentUptimeDiscount,
     };
   }, [cpuMetric, vcores, safetyMarginPct, scaleToZero]);
 
-  const cuCostMonthly = lakebaseMonthlyCuCostUsd(monthlyCU);
+  const cuCostMonthly = lakebaseMonthlyCuCostUsdAfterUptimeDiscount(
+    monthlyCU,
+    qualifiesFor100PercentUptimeDiscount
+  );
   const storageCostMonthly = lakebaseStorageMonthlyCostUsd(storageGb, skuName);
-  const totalMonthly = lakebaseTotalMonthlyCostUsd(monthlyCU, storageGb, skuName);
+  const totalMonthly = lakebaseTotalMonthlyCostUsdAfterUptimeDiscount(
+    monthlyCU,
+    storageGb,
+    skuName,
+    qualifiesFor100PercentUptimeDiscount
+  );
   const storageRate = lakebaseStorageUsdPerGb(skuName);
 
   return (
@@ -167,13 +179,20 @@ export default function LakebaseEstimateModal({
         </IconButton>
       </DialogTitle>
       <DialogContent sx={{ mt: 2, px: 3, pb: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, flexWrap: "wrap" }}>
           <Chip label={serverName} size="small" />
           <Chip
             label={`${vcores} vCores`}
             size="small"
             variant="outlined"
           />
+          {qualifiesFor100PercentUptimeDiscount && (
+            <Chip
+              label="100% Uptime Discount"
+              size="small"
+              sx={{ backgroundColor: "#00A972", color: "#fff", fontWeight: 600 }}
+            />
+          )}
         </Box>
 
         {/* Summary cards */}

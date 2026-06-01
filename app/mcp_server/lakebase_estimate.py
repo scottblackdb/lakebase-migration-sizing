@@ -13,6 +13,7 @@ LAKEBASE_CU_HIGH_USAGE_THRESHOLD = 32
 LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES = 0.3
 LAKEBASE_HOURS_PER_MONTH = 730
 LAKEBASE_CU_USD_PER_UNIT = 0.111
+LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT = 25
 LAKEBASE_STORAGE_USD_PER_GB_AWS = 0.345
 LAKEBASE_STORAGE_USD_PER_GB_DEFAULT = 0.39
 
@@ -58,6 +59,7 @@ class LakebaseEstimateMetrics:
     avg_cu_per_period: float
     used_peak_cu_constant_sizing: bool
     peak_period_lakebase_cu: int
+    qualifies_for_100_percent_uptime_discount: bool
 
 
 @dataclass
@@ -178,13 +180,37 @@ def compute_lakebase_estimate(
         avg_cu_per_period=avg_cu_per_period,
         used_peak_cu_constant_sizing=any_period_requires_high_cu,
         peak_period_lakebase_cu=peak_period_lakebase_cu,
+        qualifies_for_100_percent_uptime_discount=qualifies_for_100_percent_uptime_discount(
+            scale_to_zero, s2z_periods
+        ),
     )
 
     return LakebaseEstimateResult(points=points, metrics=metrics)
 
 
+def qualifies_for_100_percent_uptime_discount(
+    scale_to_zero_requested: bool, scale_to_zero_periods: int
+) -> bool:
+    return not scale_to_zero_requested or scale_to_zero_periods == 0
+
+
+def apply_100_percent_uptime_discount_usd(amount_usd: float) -> float:
+    return amount_usd * (1 - LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT / 100.0)
+
+
 def monthly_cu_cost_usd(monthly_cu: int) -> float:
     return monthly_cu * LAKEBASE_CU_USD_PER_UNIT
+
+
+def monthly_cu_cost_usd_after_uptime_discount(
+    monthly_cu: int, qualifies_for_discount: bool
+) -> float:
+    base = monthly_cu_cost_usd(monthly_cu)
+    return (
+        apply_100_percent_uptime_discount_usd(base)
+        if qualifies_for_discount
+        else base
+    )
 
 
 def storage_monthly_cost_usd(storage_gb: int | None, sku_name: str | None) -> float:
@@ -199,6 +225,17 @@ def total_monthly_cost_usd(
     return monthly_cu_cost_usd(monthly_cu) + storage_monthly_cost_usd(
         storage_gb, sku_name
     )
+
+
+def total_monthly_cost_usd_after_uptime_discount(
+    monthly_cu: int,
+    storage_gb: int | None,
+    sku_name: str | None,
+    qualifies_for_discount: bool,
+) -> float:
+    return monthly_cu_cost_usd_after_uptime_discount(
+        monthly_cu, qualifies_for_discount
+    ) + storage_monthly_cost_usd(storage_gb, sku_name)
 
 
 def metrics_rows_to_cpu_points(rows: list[dict[str, Any]]) -> list[MetricDataPoint]:

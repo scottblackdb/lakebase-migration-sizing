@@ -22,6 +22,7 @@ import {
   CircularProgress,
   Alert,
   Tooltip,
+  Chip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import StorageIcon from "@mui/icons-material/Storage";
@@ -33,9 +34,9 @@ import {
   LAKEBASE_CU_HIGH_USAGE_THRESHOLD,
   LAKEBASE_BRANCHED_STORAGE_FRACTION,
   tryComputeLakebaseEstimateFromMetrics,
-  lakebaseMonthlyCuCostUsd,
+  lakebaseMonthlyCuCostUsdAfterUptimeDiscount,
   lakebaseStorageMonthlyCostUsd,
-  lakebaseTotalMonthlyCostUsd,
+  lakebaseTotalMonthlyCostUsdAfterUptimeDiscount,
   effectiveStorageGbForLakebaseSizing,
 } from "../lib/lakebaseEstimate";
 
@@ -55,6 +56,7 @@ type RowResult =
       storageUsd: number;
       totalUsd: number;
       usedPeakCuConstantSizing: boolean;
+      qualifiesFor100PercentUptimeDiscount: boolean;
     }
   | {
       analysisId: string;
@@ -177,7 +179,12 @@ export default function BatchLakebaseEstimateModal({
         };
       }
       const monthlyCU = computed.result.metrics.monthlyCU;
-      const computeUsd = lakebaseMonthlyCuCostUsd(monthlyCU);
+      const qualifiesFor100PercentUptimeDiscount =
+        computed.result.metrics.qualifiesFor100PercentUptimeDiscount;
+      const computeUsd = lakebaseMonthlyCuCostUsdAfterUptimeDiscount(
+        monthlyCU,
+        qualifiesFor100PercentUptimeDiscount
+      );
       const isBranched = branchedById[a.analysis_id] ?? false;
       const storageForSizing = effectiveStorageGbForLakebaseSizing(
         a.storage_size_gb,
@@ -187,10 +194,11 @@ export default function BatchLakebaseEstimateModal({
         storageForSizing,
         a.sku_name
       );
-      const totalUsd = lakebaseTotalMonthlyCostUsd(
+      const totalUsd = lakebaseTotalMonthlyCostUsdAfterUptimeDiscount(
         monthlyCU,
         storageForSizing,
-        a.sku_name
+        a.sku_name,
+        qualifiesFor100PercentUptimeDiscount
       );
       return {
         analysisId: a.analysis_id,
@@ -201,6 +209,7 @@ export default function BatchLakebaseEstimateModal({
         storageUsd,
         totalUsd,
         usedPeakCuConstantSizing: computed.result.metrics.usedPeakCuConstantSizing,
+        qualifiesFor100PercentUptimeDiscount,
       };
     });
   }, [analyses, metricsById, safetyMarginPct, autoscaleById, branchedById]);
@@ -370,6 +379,20 @@ export default function BatchLakebaseEstimateModal({
                       <Typography variant="caption" color="text.secondary">
                         {a.vcores != null ? `${a.vcores} vCores` : "vCores —"}
                       </Typography>
+                      {row?.ok && row.qualifiesFor100PercentUptimeDiscount && (
+                        <Chip
+                          label="100% Uptime Discount"
+                          size="small"
+                          sx={{
+                            mt: 0.5,
+                            backgroundColor: "#00A972",
+                            color: "#fff",
+                            fontWeight: 600,
+                            height: 22,
+                            fontSize: "0.7rem",
+                          }}
+                        />
+                      )}
                     </TableCell>
                     <TableCell align="center">
                       <FormControlLabel

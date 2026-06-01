@@ -12,10 +12,13 @@ from backend.db import fetchall
 from backend.ingest import ingest_metrics_payload
 
 from mcp_server.lakebase_estimate import (
+    LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT,
     compute_lakebase_estimate,
     metrics_rows_to_cpu_points,
     monthly_cu_cost_usd,
+    monthly_cu_cost_usd_after_uptime_discount,
     total_monthly_cost_usd,
+    total_monthly_cost_usd_after_uptime_discount,
 )
 
 
@@ -94,6 +97,11 @@ def get_lakebase_estimate_dict(
         except (TypeError, ValueError):
             storage_gb = None
     monthly = m.monthly_cu
+    uptime_discount = m.qualifies_for_100_percent_uptime_discount
+    compute_usd = monthly_cu_cost_usd_after_uptime_discount(monthly, uptime_discount)
+    total_usd = total_monthly_cost_usd_after_uptime_discount(
+        monthly, storage_gb, sku, uptime_discount
+    )
 
     return {
         "analysis_id": analysis_id,
@@ -112,11 +120,17 @@ def get_lakebase_estimate_dict(
             "avg_cu_per_period": round(m.avg_cu_per_period, 4),
             "used_peak_cu_constant_sizing": m.used_peak_cu_constant_sizing,
             "peak_period_lakebase_cu": m.peak_period_lakebase_cu,
+            "qualifies_for_100_percent_uptime_discount": uptime_discount,
         },
         "costs_usd_per_month": {
-            "compute": round(monthly_cu_cost_usd(monthly), 2),
-            "total_cu_plus_storage": round(
+            "compute": round(compute_usd, 2),
+            "compute_before_discount": round(monthly_cu_cost_usd(monthly), 2),
+            "total_cu_plus_storage": round(total_usd, 2),
+            "total_cu_plus_storage_before_discount": round(
                 total_monthly_cost_usd(monthly, storage_gb, sku), 2
+            ),
+            "uptime_discount_pct": (
+                LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT if uptime_discount else 0
             ),
         },
         "storage_size_gb": storage_gb,

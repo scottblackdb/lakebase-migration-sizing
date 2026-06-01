@@ -29,6 +29,9 @@ export const LAKEBASE_HOURS_PER_MONTH = 730;
 /** USD per Lakebase CU-month (placeholder — align with your pricing sheet). */
 export const LAKEBASE_CU_USD_PER_UNIT = 0.111;
 
+/** Compute discount when scale-to-zero does not reduce any interval (100% uptime). */
+export const LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT = 25;
+
 /** Storage $/GB-month when SKU looks like AWS RDS (db.*). */
 export const LAKEBASE_STORAGE_USD_PER_GB_AWS = 0.345;
 
@@ -75,6 +78,8 @@ export interface LakebaseEstimateMetrics {
   usedPeakCuConstantSizing: boolean;
   /** Largest per-interval Lakebase CU in the final model (after rules). */
   peakPeriodLakebaseCU: number;
+  /** True when scale-to-zero is off or no intervals qualify for 0 CU. */
+  qualifiesFor100PercentUptimeDiscount: boolean;
 }
 
 export interface LakebaseEstimateResult {
@@ -194,9 +199,45 @@ export function computeLakebaseEstimate(
     avgCUPerPeriod,
     usedPeakCuConstantSizing: anyPeriodRequiresHighCu,
     peakPeriodLakebaseCU,
+    qualifiesFor100PercentUptimeDiscount:
+      qualifiesFor100PercentUptimeDiscount(scaleToZero, s2zPeriods),
   };
 
   return { points, metrics };
+}
+
+/** When scale-to-zero is unchecked or no intervals map to 0 CU. */
+export function qualifiesFor100PercentUptimeDiscount(
+  scaleToZeroRequested: boolean,
+  scaleToZeroPeriods: number
+): boolean {
+  return !scaleToZeroRequested || scaleToZeroPeriods === 0;
+}
+
+export function apply100PercentUptimeDiscountUsd(amountUsd: number): number {
+  return amountUsd * (1 - LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT / 100);
+}
+
+export function lakebaseMonthlyCuCostUsdAfterUptimeDiscount(
+  monthlyCU: number,
+  qualifiesForDiscount: boolean
+): number {
+  const base = lakebaseMonthlyCuCostUsd(monthlyCU);
+  return qualifiesForDiscount
+    ? apply100PercentUptimeDiscountUsd(base)
+    : base;
+}
+
+export function lakebaseTotalMonthlyCostUsdAfterUptimeDiscount(
+  monthlyCU: number,
+  storageGb: number | null | undefined,
+  skuName: string | null | undefined,
+  qualifiesForDiscount: boolean
+): number {
+  return (
+    lakebaseMonthlyCuCostUsdAfterUptimeDiscount(monthlyCU, qualifiesForDiscount) +
+    lakebaseStorageMonthlyCostUsd(storageGb, skuName)
+  );
 }
 
 /**
