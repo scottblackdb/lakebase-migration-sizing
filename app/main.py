@@ -4,8 +4,8 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.routes import ai_analysis, analyses, metrics, upload
@@ -68,17 +68,52 @@ if _can_serve_static:
             return FileResponse(under)
         return FileResponse(_INDEX_HTML)
 else:
+    _MISSING_FRONTEND_HTML = """<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lakebase Migration Sizing — setup required</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; color: #1b3139; }
+    code { background: #f2f3f5; padding: 0.15rem 0.35rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Frontend bundle not found</h1>
+  <p>
+    Expected <code>frontend/dist/index.html</code> next to <code>main.py</code>.
+    On Databricks Apps, <code>start.sh</code> should build it automatically on first startup.
+  </p>
+  <p>Manual build:</p>
+  <pre><code>cd app/frontend && npm install && npm run build</code></pre>
+</body>
+</html>
+"""
+
+    def _frontend_bundle_missing(request: Request):
+        """`frontend/dist` missing (gitignored — built at deploy/startup)."""
+        payload = {
+            "detail": "Frontend bundle not found.",
+            "expected_path": _STATIC_ROOT,
+            "fix": "Run: cd app/frontend && npm install && npm run build. "
+            "Or redeploy so start.sh can build on startup.",
+            "doc": "See DATABRICKS_DEPLOY.md in this app folder.",
+        }
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept and "application/json" not in accept:
+            return HTMLResponse(
+                status_code=503,
+                content=_MISSING_FRONTEND_HTML,
+            )
+        return JSONResponse(status_code=503, content=payload)
 
     @app.get("/")
-    def frontend_bundle_missing():
-        """`frontend/dist` missing (often not committed — run Vite build before deploy)."""
-        return JSONResponse(
-            status_code=503,
-            content={
-                "detail": "Frontend bundle not found.",
-                "expected_path": _STATIC_ROOT,
-                "fix": "Run: cd app/frontend && bun install && bun run build. "
-                "Deploy app/frontend/dist/ next to main.py.",
-                "doc": "See DATABRICKS_DEPLOY.md in this app folder.",
-            },
-        )
+    def frontend_bundle_missing_root(request: Request):
+        return _frontend_bundle_missing(request)
+
+    @app.get("/{full_path:path}")
+    def frontend_bundle_missing_spa(request: Request, full_path: str):
+        if full_path == "api" or full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        return _frontend_bundle_missing(request)

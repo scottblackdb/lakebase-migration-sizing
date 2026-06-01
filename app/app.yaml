@@ -1,11 +1,6 @@
 command:
-  - opentelemetry-instrument
-  - uvicorn
-  - main:app
-  - --host
-  - 0.0.0.0
-  - --port
-  - 8000
+  - bash
+  - start.sh
 env:
   - name: OTEL_TRACES_SAMPLER
     value: "always_on"

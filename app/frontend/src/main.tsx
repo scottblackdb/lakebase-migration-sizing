@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider, createTheme, CssBaseline } from "@mui/material";
@@ -82,13 +82,58 @@ const theme = createTheme({
   },
 });
 
+class RootErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null as Error | null };
+
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("App failed to render", error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: "2rem", maxWidth: 720, fontFamily: "system-ui, sans-serif" }}>
+          <h1 style={{ fontSize: "1.25rem", marginBottom: "0.5rem" }}>
+            Something went wrong loading the app
+          </h1>
+          <p style={{ color: "#555", marginBottom: "1rem" }}>
+            Open the browser developer console for details, then redeploy after
+            rebuilding the frontend.
+          </p>
+          <pre
+            style={{
+              padding: "1rem",
+              background: "#f2f3f5",
+              borderRadius: 8,
+              overflow: "auto",
+              fontSize: "0.85rem",
+            }}
+          >
+            {this.state.error.message}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <BrowserRouter basename={routerBasename()}>
-        <App />
-      </BrowserRouter>
-    </ThemeProvider>
+    <RootErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <BrowserRouter basename={routerBasename()}>
+          <App />
+        </BrowserRouter>
+      </ThemeProvider>
+    </RootErrorBoundary>
   </React.StrictMode>
 );
