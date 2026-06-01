@@ -14,6 +14,7 @@ from backend.ingest import ingest_metrics_payload
 from mcp_server.lakebase_estimate import (
     LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT,
     compute_lakebase_estimate,
+    count_usable_cpu_samples,
     effective_storage_gb_for_lakebase_sizing,
     metrics_rows_to_cpu_points,
     monthly_cu_cost_usd,
@@ -82,9 +83,19 @@ def get_lakebase_estimate_dict(
         raise ValueError("No cpu_percent metric data for this analysis")
 
     cpu_data = metrics_rows_to_cpu_points([dict(r) for r in mrows])
+    if count_usable_cpu_samples(cpu_data) == 0:
+        raise ValueError("No usable CPU samples (maximum values are null)")
     est = compute_lakebase_estimate(
-        cpu_data, vc, float(safety_margin_pct), bool(scale_to_zero)
+        cpu_data,
+        vc,
+        float(safety_margin_pct),
+        bool(scale_to_zero),
+        row.get("granularity"),
     )
+    if not est.metrics.monthly_cu_projection_reliable:
+        raise ValueError(
+            "Cannot project monthly CU: need ≥2 CPU samples or analysis granularity"
+        )
     m = est.metrics
     sku = row.get("sku_name")
     raw_storage = row.get("storage_size_gb")

@@ -4,6 +4,7 @@ Lakebase CU / cost estimation (Python port of app/frontend/src/lib/lakebaseEstim
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -61,6 +62,8 @@ class LakebaseEstimateMetrics:
     used_peak_cu_constant_sizing: bool
     peak_period_lakebase_cu: int
     qualifies_for_100_percent_uptime_discount: bool
+    monthly_cu_projection_reliable: bool
+    interval_source: str | None
 
 
 @dataclass
@@ -69,11 +72,75 @@ class LakebaseEstimateResult:
     metrics: LakebaseEstimateMetrics
 
 
+def count_usable_cpu_samples(cpu_data: list[MetricDataPoint]) -> int:
+    return sum(1 for d in cpu_data if d.maximum is not None)
+
+
+def parse_granularity_to_hours(granularity: str | None) -> float | None:
+    if granularity is None or not granularity.strip():
+        return None
+    g = granularity.strip().upper()
+    if not g.startswith("P"):
+        return None
+    total_hours = 0.0
+    if days := re.search(r"(\d+)D", g):
+        total_hours += int(days.group(1)) * 24
+    if hours := re.search(r"(\d+)H", g):
+        total_hours += int(hours.group(1))
+    if minutes := re.search(r"(\d+)M", g):
+        total_hours += int(minutes.group(1)) / 60.0
+    if seconds := re.search(r"(\d+)S", g):
+        total_hours += int(seconds.group(1)) / 3600.0
+    return total_hours if total_hours > 0 else None
+
+
+def _ts_to_epoch(ts: str) -> float:
+    t = ts.strip()
+    if t.endswith("Z"):
+        t = t[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(t).timestamp()
+    except ValueError:
+        return datetime.fromisoformat(t + "+00:00").timestamp()
+
+
+def median_interval_hours_from_samples(
+    cpu_data: list[MetricDataPoint],
+) -> float | None:
+    if len(cpu_data) < 2:
+        return None
+    deltas: list[float] = []
+    for i in range(1, len(cpu_data)):
+        hours = (_ts_to_epoch(cpu_data[i].timestamp) - _ts_to_epoch(cpu_data[i - 1].timestamp)) / 3600.0
+        if hours > 0:
+            deltas.append(hours)
+    if not deltas:
+        return None
+    deltas.sort()
+    mid = len(deltas) // 2
+    if len(deltas) % 2 == 0:
+        return (deltas[mid - 1] + deltas[mid]) / 2.0
+    return deltas[mid]
+
+
+def resolve_sample_interval_hours(
+    cpu_data: list[MetricDataPoint], granularity: str | None
+) -> tuple[float | None, str | None]:
+    median = median_interval_hours_from_samples(cpu_data)
+    if median is not None:
+        return median, "median"
+    from_granularity = parse_granularity_to_hours(granularity)
+    if from_granularity is not None and len(cpu_data) >= 1:
+        return from_granularity, "granularity"
+    return None, None
+
+
 def compute_lakebase_estimate(
     cpu_data: list[MetricDataPoint],
     vcores: int,
     safety_margin_pct: float,
     scale_to_zero: bool,
+    granularity: str | None = None,
 ) -> LakebaseEstimateResult:
     margin = safety_margin_pct / 100.0
     idle_threshold = LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES
@@ -144,25 +211,23 @@ def compute_lakebase_estimate(
     finite_cus = [p.lakebase_cu for p in points if p.lakebase_cu is not None]
     peak_period_lakebase_cu = max(finite_cus) if finite_cus else 0
 
-    interval_hours = 1.0
-    if len(cpu_data) >= 2:
+    resolved_interval, interval_source = resolve_sample_interval_hours(
+        cpu_data, granularity
+    )
+    monthly_cu_projection_reliable = (
+        resolved_interval is not None and resolved_interval > 0
+    )
+    interval_hours = resolved_interval if resolved_interval is not None else 0.0
+    periods_per_month = (
+        LAKEBASE_HOURS_PER_MONTH / interval_hours
+        if monthly_cu_projection_reliable
+        else 0.0
+    )
 
-        def _ts_to_epoch(ts: str) -> float:
-            t = ts.strip()
-            if t.endswith("Z"):
-                t = t[:-1] + "+00:00"
-            try:
-                return datetime.fromisoformat(t).timestamp()
-            except ValueError:
-                return datetime.fromisoformat(t + "+00:00").timestamp()
-
-        first_ts = _ts_to_epoch(cpu_data[0].timestamp)
-        last_ts = _ts_to_epoch(cpu_data[-1].timestamp)
-        interval_hours = (last_ts - first_ts) / (len(cpu_data) - 1) / 3600.0
-
-    periods_per_month = LAKEBASE_HOURS_PER_MONTH / interval_hours
-
-    if any_period_requires_high_cu:
+    if not monthly_cu_projection_reliable:
+        avg_cu_per_period = 0.0
+        monthly_cu = 0
+    elif any_period_requires_high_cu:
         avg_cu_per_period = float(peak_period_lakebase_cu)
         monthly_cu = int(round(peak_period_lakebase_cu * periods_per_month))
     else:
@@ -184,6 +249,8 @@ def compute_lakebase_estimate(
         qualifies_for_100_percent_uptime_discount=qualifies_for_100_percent_uptime_discount(
             scale_to_zero, s2z_periods
         ),
+        monthly_cu_projection_reliable=monthly_cu_projection_reliable,
+        interval_source=interval_source,
     )
 
     return LakebaseEstimateResult(points=points, metrics=metrics)

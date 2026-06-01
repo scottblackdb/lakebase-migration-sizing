@@ -53,6 +53,8 @@ export function lakebaseStorageUsdPerGb(
 export interface LakebaseEstimateOptions {
   safetyMarginPct: number;
   scaleToZero: boolean;
+  /** Analysis export granularity (ISO-8601, e.g. PT1H) — fallback for interval hours. */
+  granularity?: string | null;
 }
 
 /** One time-aligned row after CPU% → cores and CU math. */
@@ -80,11 +82,81 @@ export interface LakebaseEstimateMetrics {
   peakPeriodLakebaseCU: number;
   /** True when scale-to-zero is off or no intervals qualify for 0 CU. */
   qualifiesFor100PercentUptimeDiscount: boolean;
+  /** False when interval length cannot be inferred (under-projection guard). */
+  monthlyCuProjectionReliable: boolean;
+  /** How interval hours were derived, when reliable. */
+  intervalSource: "median" | "granularity" | null;
 }
 
 export interface LakebaseEstimateResult {
   points: LakebaseEstimatePoint[];
   metrics: LakebaseEstimateMetrics;
+}
+
+export function countUsableCpuSamples(cpuData: MetricDataPoint[]): number {
+  return cpuData.filter((d) => d.maximum != null).length;
+}
+
+export function hasUsableCpuMetricData(
+  cpuMetric: MetricResponse | undefined
+): boolean {
+  return Boolean(cpuMetric && countUsableCpuSamples(cpuMetric.data) > 0);
+}
+
+/** Parse ISO-8601 duration strings from exports (e.g. PT1H, PT5M, P1D). */
+export function parseGranularityToHours(
+  granularity: string | null | undefined
+): number | null {
+  if (granularity == null || !granularity.trim()) return null;
+  const g = granularity.trim().toUpperCase();
+  if (!g.startsWith("P")) return null;
+  let totalHours = 0;
+  const days = g.match(/(\d+)D/);
+  if (days) totalHours += Number(days[1]) * 24;
+  const hours = g.match(/(\d+)H/);
+  if (hours) totalHours += Number(hours[1]);
+  const minutes = g.match(/(\d+)M/);
+  if (minutes) totalHours += Number(minutes[1]) / 60;
+  const seconds = g.match(/(\d+)S/);
+  if (seconds) totalHours += Number(seconds[1]) / 3600;
+  return totalHours > 0 ? totalHours : null;
+}
+
+function medianIntervalHoursFromSamples(
+  cpuData: MetricDataPoint[]
+): number | null {
+  if (cpuData.length < 2) return null;
+  const deltas: number[] = [];
+  for (let i = 1; i < cpuData.length; i++) {
+    const prev = new Date(cpuData[i - 1].timestamp).getTime();
+    const curr = new Date(cpuData[i].timestamp).getTime();
+    const hours = (curr - prev) / 3600000;
+    if (hours > 0 && Number.isFinite(hours)) deltas.push(hours);
+  }
+  if (deltas.length === 0) return null;
+  deltas.sort((a, b) => a - b);
+  const mid = Math.floor(deltas.length / 2);
+  return deltas.length % 2 === 0
+    ? (deltas[mid - 1] + deltas[mid]) / 2
+    : deltas[mid];
+}
+
+export function resolveSampleIntervalHours(
+  cpuData: MetricDataPoint[],
+  granularity: string | null | undefined
+): {
+  intervalHours: number | null;
+  source: "median" | "granularity" | null;
+} {
+  const median = medianIntervalHoursFromSamples(cpuData);
+  if (median != null) {
+    return { intervalHours: median, source: "median" };
+  }
+  const fromGranularity = parseGranularityToHours(granularity);
+  if (fromGranularity != null && cpuData.length >= 1) {
+    return { intervalHours: fromGranularity, source: "granularity" };
+  }
+  return { intervalHours: null, source: null };
 }
 
 /**
@@ -95,7 +167,7 @@ export function computeLakebaseEstimate(
   vcores: number,
   options: LakebaseEstimateOptions
 ): LakebaseEstimateResult {
-  const { safetyMarginPct, scaleToZero } = options;
+  const { safetyMarginPct, scaleToZero, granularity } = options;
   const margin = safetyMarginPct / 100;
   const idleThresholdCores = LAKEBASE_SCALE_TO_ZERO_THRESHOLD_CORES;
 
@@ -167,19 +239,21 @@ export function computeLakebaseEstimate(
   const peakPeriodLakebaseCU =
     finiteCUs.length > 0 ? Math.max(...finiteCUs) : 0;
 
-  let intervalHours = 1;
-  if (cpuData.length >= 2) {
-    const firstTs = new Date(cpuData[0].timestamp).getTime();
-    const lastTs = new Date(cpuData[cpuData.length - 1].timestamp).getTime();
-    intervalHours =
-      (lastTs - firstTs) / (cpuData.length - 1) / 3600000;
-  }
-
-  const periodsPerMonth = LAKEBASE_HOURS_PER_MONTH / intervalHours;
+  const { intervalHours: resolvedInterval, source: intervalSource } =
+    resolveSampleIntervalHours(cpuData, granularity);
+  const monthlyCuProjectionReliable =
+    resolvedInterval != null && resolvedInterval > 0;
+  const intervalHours = resolvedInterval ?? 0;
+  const periodsPerMonth = monthlyCuProjectionReliable
+    ? LAKEBASE_HOURS_PER_MONTH / intervalHours
+    : 0;
 
   let monthlyCU: number;
   let avgCUPerPeriod: number;
-  if (anyPeriodRequiresHighCu) {
+  if (!monthlyCuProjectionReliable) {
+    avgCUPerPeriod = 0;
+    monthlyCU = 0;
+  } else if (anyPeriodRequiresHighCu) {
     avgCUPerPeriod = peakPeriodLakebaseCU;
     monthlyCU = Math.round(peakPeriodLakebaseCU * periodsPerMonth);
   } else {
@@ -201,6 +275,8 @@ export function computeLakebaseEstimate(
     peakPeriodLakebaseCU,
     qualifiesFor100PercentUptimeDiscount:
       qualifiesFor100PercentUptimeDiscount(scaleToZero, s2zPeriods),
+    monthlyCuProjectionReliable,
+    intervalSource,
   };
 
   return { points, metrics };
@@ -258,7 +334,20 @@ export function tryComputeLakebaseEstimateFromMetrics(
   if (!cpu || cpu.data_points === 0) {
     return { ok: false, error: "No CPU percent metric data" };
   }
+  if (countUsableCpuSamples(cpu.data) === 0) {
+    return {
+      ok: false,
+      error: "No usable CPU samples (maximum values are null)",
+    };
+  }
   const result = computeLakebaseEstimate(cpu.data, vcores, options);
+  if (!result.metrics.monthlyCuProjectionReliable) {
+    return {
+      ok: false,
+      error:
+        "Cannot project monthly CU: need ≥2 CPU samples or analysis granularity",
+    };
+  }
   return { ok: true, result, cpuMetric: cpu };
 }
 

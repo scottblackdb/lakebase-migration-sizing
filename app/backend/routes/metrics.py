@@ -19,6 +19,24 @@ def _require_analysis(analysis_id: str) -> None:
         raise HTTPException(status_code=404, detail="Analysis not found")
 
 
+def _fetch_metric_response(
+    analysis_id: str, metric_name: str
+) -> MetricResponse:
+    rows = fetchall(
+        f"SELECT timestamp, average, maximum, minimum "
+        f"FROM {s}metric_{metric_name} "
+        f"WHERE analysis_id = %s "
+        f"ORDER BY timestamp",
+        (analysis_id,),
+    )
+    return MetricResponse(
+        metric_name=metric_name,
+        display_name=DISPLAY_NAMES[metric_name],
+        data_points=len(rows),
+        data=[MetricDataPoint(**r) for r in rows],
+    )
+
+
 @router.get(
     "/analyses/{analysis_id}/metrics/{metric_name}", response_model=MetricResponse
 )
@@ -30,27 +48,13 @@ def get_metric(analysis_id: str, metric_name: str):
         )
 
     _require_analysis(analysis_id)
-
-    rows = fetchall(
-        f"SELECT timestamp, average, maximum, minimum "
-        f"FROM {s}metric_{metric_name} "
-        f"WHERE analysis_id = %s "
-        f"ORDER BY timestamp",
-        (analysis_id,),
-    )
-
-    return MetricResponse(
-        metric_name=metric_name,
-        display_name=DISPLAY_NAMES[metric_name],
-        data_points=len(rows),
-        data=[MetricDataPoint(**r) for r in rows],
-    )
+    return _fetch_metric_response(analysis_id, metric_name)
 
 
 @router.get("/analyses/{analysis_id}/metrics", response_model=list[MetricResponse])
 def get_all_metrics(analysis_id: str):
     _require_analysis(analysis_id)
-    results = []
-    for metric_name in METRIC_NAMES:
-        results.append(get_metric(analysis_id, metric_name))
-    return results
+    return [
+        _fetch_metric_response(analysis_id, metric_name)
+        for metric_name in METRIC_NAMES
+    ]

@@ -32,6 +32,7 @@ import MetricChart from "./MetricChart";
 import CpuCapacityChart from "./CpuCapacityChart";
 import CacheHitRatioChart from "./CacheHitRatioChart";
 import LakebaseEstimateModal from "./LakebaseEstimateModal";
+import { hasUsableCpuMetricData } from "../lib/lakebaseEstimate";
 
 interface OverviewCardProps {
   icon: React.ReactNode;
@@ -154,7 +155,7 @@ export default function AnalysisDetail() {
   const hasAiAnalysis = !!analysis.ai_analysis;
   const cpuMetric = metrics.find((m) => m.metric_name === "cpu_percent");
   const hasCpuChartData =
-    Boolean(analysis.vcores && cpuMetric && cpuMetric.data_points > 0);
+    Boolean(analysis.vcores && hasUsableCpuMetricData(cpuMetric));
   const blocksHitMetric = metrics.find((m) => m.metric_name === "blks_hit");
   const blocksReadMetric = metrics.find((m) => m.metric_name === "blks_read");
   const cacheHitRatioMetric = metrics.find((m) => m.metric_name === "cache_hit_ratio");
@@ -347,6 +348,7 @@ export default function AnalysisDetail() {
           serverName={analysis.server_name}
           storageGb={analysis.storage_size_gb}
           skuName={analysis.sku_name}
+          granularity={analysis.granularity}
         />
       )}
     </>

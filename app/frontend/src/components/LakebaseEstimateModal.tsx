@@ -44,6 +44,8 @@ import {
   LAKEBASE_BRANCHED_STORAGE_FRACTION,
   tryComputeLakebaseEstimateFromMetrics,
   type LakebaseEstimatePoint,
+  LAKEBASE_CU_USD_PER_UNIT,
+  lakebaseMonthlyCuCostUsd,
   lakebaseMonthlyCuCostUsdAfterUptimeDiscount,
   lakebaseStorageMonthlyCostUsd,
   lakebaseStorageUsdPerGb,
@@ -68,6 +70,7 @@ interface Props {
   serverName: string;
   storageGb: number | null;
   skuName: string | null;
+  granularity?: string | null;
 }
 
 export default function LakebaseEstimateModal({
@@ -78,6 +81,7 @@ export default function LakebaseEstimateModal({
   serverName,
   storageGb,
   skuName,
+  granularity = null,
 }: Props) {
   const [safetyMarginPct, setSafetyMarginPct] = useState<number>(
     LAKEBASE_ESTIMATE_DEFAULT_SAFETY_MARGIN_PCT
@@ -99,11 +103,12 @@ export default function LakebaseEstimateModal({
     peakPeriodLakebaseCU,
     periodsPerMonth,
     qualifiesFor100PercentUptimeDiscount,
+    estimateError,
   } = useMemo(() => {
     const t = tryComputeLakebaseEstimateFromMetrics(
       [cpuMetric],
       vcores,
-      { safetyMarginPct, scaleToZero }
+      { safetyMarginPct, scaleToZero, granularity }
     );
     if (!t.ok) {
       return {
@@ -118,6 +123,7 @@ export default function LakebaseEstimateModal({
         peakPeriodLakebaseCU: 0,
         periodsPerMonth: 0,
         qualifiesFor100PercentUptimeDiscount: false,
+        estimateError: t.error,
       };
     }
     const { points, metrics } = t.result;
@@ -134,8 +140,9 @@ export default function LakebaseEstimateModal({
       periodsPerMonth: metrics.periodsPerMonth,
       qualifiesFor100PercentUptimeDiscount:
         metrics.qualifiesFor100PercentUptimeDiscount,
+      estimateError: null as string | null,
     };
-  }, [cpuMetric, vcores, safetyMarginPct, scaleToZero]);
+  }, [cpuMetric, vcores, safetyMarginPct, scaleToZero, granularity]);
 
   const storageForSizing = effectiveStorageGbForLakebaseSizing(
     storageGb,
@@ -156,6 +163,17 @@ export default function LakebaseEstimateModal({
     qualifiesFor100PercentUptimeDiscount
   );
   const storageRate = lakebaseStorageUsdPerGb(skuName);
+  const computeBeforeDiscount = lakebaseMonthlyCuCostUsd(monthlyCU);
+  const computeDiscountSavings =
+    qualifiesFor100PercentUptimeDiscount
+      ? computeBeforeDiscount - cuCostMonthly
+      : 0;
+
+  const formatMoney = (n: number) =>
+    n.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
   return (
     <Dialog
@@ -210,6 +228,12 @@ export default function LakebaseEstimateModal({
             </Tooltip>
           )}
         </Box>
+
+        {estimateError && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {estimateError}
+          </Alert>
+        )}
 
         {/* Summary cards */}
         <Box
@@ -276,6 +300,20 @@ export default function LakebaseEstimateModal({
           <Box>
             <Typography variant="overline" fontWeight={700} color="#00A972" sx={{ mb: 0.5, display: "block", letterSpacing: 1 }}>
               Monthly CU Cost
+              {qualifiesFor100PercentUptimeDiscount && (
+                <Chip
+                  label="100% Uptime Discount applied"
+                  size="small"
+                  sx={{
+                    ml: 1,
+                    height: 20,
+                    fontSize: "0.65rem",
+                    backgroundColor: "#00A972",
+                    color: "#fff",
+                    verticalAlign: "middle",
+                  }}
+                />
+              )}
             </Typography>
             <Paper
               sx={{
@@ -288,10 +326,20 @@ export default function LakebaseEstimateModal({
             >
               <Typography variant="caption" sx={{ color: "#A0ACBE" }}>
                 CU Cost Per Month
+                {qualifiesFor100PercentUptimeDiscount &&
+                  ` (${LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT}% off compute)`}
               </Typography>
               <Typography variant="h5" fontWeight={700} color="#00A972">
-                ${cuCostMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ${formatMoney(cuCostMonthly)}
               </Typography>
+              {qualifiesFor100PercentUptimeDiscount && (
+                <Typography
+                  variant="caption"
+                  sx={{ color: "#A0ACBE", display: "block", mt: 0.5 }}
+                >
+                  Before discount: ${formatMoney(computeBeforeDiscount)}
+                </Typography>
+              )}
             </Paper>
           </Box>
           <Box>
@@ -336,9 +384,11 @@ export default function LakebaseEstimateModal({
             >
               <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.8)" }}>
                 CU + Storage
+                {qualifiesFor100PercentUptimeDiscount &&
+                  " (compute discounted)"}
               </Typography>
               <Typography variant="h5" fontWeight={700}>
-                ${totalMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                ${formatMoney(totalMonthly)}
               </Typography>
             </Paper>
           </Box>
@@ -592,6 +642,45 @@ export default function LakebaseEstimateModal({
               <>
                 Avg CU/period projected over {LAKEBASE_HOURS_PER_MONTH} hrs/month ={" "}
                 <strong>{monthlyCU.toLocaleString()} CU/month</strong>
+              </>
+            )}
+            {!estimateError && (
+              <>
+                <br />
+                Compute $/mo = {monthlyCU.toLocaleString()} CU × ${LAKEBASE_CU_USD_PER_UNIT}/CU ={" "}
+                <strong>${formatMoney(computeBeforeDiscount)}</strong>
+                {qualifiesFor100PercentUptimeDiscount && (
+                  <>
+                    <br />
+                    <strong>100% Uptime Discount</strong> (
+                    {LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT}% off compute only): −$
+                    {formatMoney(computeDiscountSavings)} →{" "}
+                    <strong>${formatMoney(cuCostMonthly)}/mo</strong> compute
+                    <br />
+                    <Typography
+                      component="span"
+                      variant="caption"
+                      color="text.secondary"
+                    >
+                      Applied because scale-to-zero is off or no intervals qualify for 0 CU
+                      (100% uptime workload).
+                    </Typography>
+                  </>
+                )}
+                <br />
+                Storage $/mo ={" "}
+                {storageForSizing != null ? (
+                  <strong>${formatMoney(storageCostMonthly)}</strong>
+                ) : (
+                  "—"
+                )}{" "}
+                (not discounted)
+                <br />
+                Total $/mo = ${formatMoney(cuCostMonthly)} compute
+                {storageForSizing != null
+                  ? ` + $${formatMoney(storageCostMonthly)} storage`
+                  : ""}{" "}
+                = <strong>${formatMoney(totalMonthly)}</strong>
               </>
             )}
           </Typography>

@@ -35,6 +35,8 @@ import {
   LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT,
   LAKEBASE_BRANCHED_STORAGE_FRACTION,
   tryComputeLakebaseEstimateFromMetrics,
+  LAKEBASE_CU_USD_PER_UNIT,
+  lakebaseMonthlyCuCostUsd,
   lakebaseMonthlyCuCostUsdAfterUptimeDiscount,
   lakebaseStorageMonthlyCostUsd,
   lakebaseTotalMonthlyCostUsdAfterUptimeDiscount,
@@ -89,6 +91,10 @@ export default function BatchLakebaseEstimateModal({
   const [metricsById, setMetricsById] = useState<
     Record<string, MetricResponse[]>
   >({});
+  const [fetchErrorsById, setFetchErrorsById] = useState<
+    Record<string, string>
+  >({});
+  const [fetchCompleted, setFetchCompleted] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -99,6 +105,8 @@ export default function BatchLakebaseEstimateModal({
   useEffect(() => {
     if (!open) return;
     setMetricsById({});
+    setFetchErrorsById({});
+    setFetchCompleted(false);
     setFetchError(null);
     setAutoscaleById((prev) => {
       const next: Record<string, boolean> = {};
@@ -127,34 +135,56 @@ export default function BatchLakebaseEstimateModal({
 
   const handleGenerate = async () => {
     setFetchError(null);
+    setFetchErrorsById({});
     setLoading(true);
-    try {
-      const entries = await Promise.all(
-        analyses.map(async (a) => {
-          try {
-            const metrics = await fetchAllMetrics(a.analysis_id);
-            return [a.analysis_id, metrics] as const;
-          } catch (e) {
-            throw new Error(
-              `${a.server_name}: ${e instanceof Error ? e.message : String(e)}`
-            );
-          }
-        })
-      );
-      const map: Record<string, MetricResponse[]> = {};
-      for (const [id, m] of entries) map[id] = m;
-      setMetricsById(map);
-    } catch (e) {
-      setFetchError(e instanceof Error ? e.message : String(e));
-      setMetricsById({});
-    } finally {
-      setLoading(false);
+    const map: Record<string, MetricResponse[]> = {};
+    const errors: Record<string, string> = {};
+    const failedNames: string[] = [];
+
+    await Promise.all(
+      analyses.map(async (a) => {
+        try {
+          map[a.analysis_id] = await fetchAllMetrics(a.analysis_id);
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          errors[a.analysis_id] = msg;
+          failedNames.push(a.server_name);
+        }
+      })
+    );
+
+    setMetricsById(map);
+    setFetchErrorsById(errors);
+    setFetchCompleted(true);
+
+    if (failedNames.length > 0) {
+      if (Object.keys(map).length === 0) {
+        setFetchError(
+          `Failed to load metrics for all ${failedNames.length} server(s).`
+        );
+      } else {
+        setFetchError(
+          `Loaded ${Object.keys(map).length} of ${analyses.length} server(s). ` +
+            `${failedNames.length} failed — see row status for details.`
+        );
+      }
     }
+
+    setLoading(false);
   };
 
   const rows: RowResult[] = useMemo(() => {
-    if (Object.keys(metricsById).length === 0) return [];
+    if (!fetchCompleted) return [];
     return analyses.map((a) => {
+      const fetchError = fetchErrorsById[a.analysis_id];
+      if (fetchError) {
+        return {
+          analysisId: a.analysis_id,
+          serverName: a.server_name,
+          ok: false as const,
+          error: fetchError,
+        };
+      }
       const metrics = metricsById[a.analysis_id];
       if (!metrics) {
         return {
@@ -170,6 +200,7 @@ export default function BatchLakebaseEstimateModal({
       const computed = tryComputeLakebaseEstimateFromMetrics(metrics, a.vcores, {
         safetyMarginPct,
         scaleToZero,
+        granularity: a.granularity,
       });
       if (!computed.ok) {
         return {
@@ -213,7 +244,21 @@ export default function BatchLakebaseEstimateModal({
         qualifiesFor100PercentUptimeDiscount,
       };
     });
-  }, [analyses, metricsById, safetyMarginPct, autoscaleById, branchedById]);
+  }, [
+    analyses,
+    metricsById,
+    fetchErrorsById,
+    fetchCompleted,
+    safetyMarginPct,
+    autoscaleById,
+    branchedById,
+  ]);
+
+  const rowsByAnalysisId = useMemo(() => {
+    const map = new Map<string, RowResult>();
+    for (const row of rows) map.set(row.analysisId, row);
+    return map;
+  }, [rows]);
 
   const totals = useMemo(() => {
     let monthlyCUSum = 0;
@@ -231,7 +276,7 @@ export default function BatchLakebaseEstimateModal({
     return { monthlyCUSum, computeUsdSum, storageUsdSum, totalUsdSum };
   }, [rows]);
 
-  const hasResults = Object.keys(metricsById).length > 0;
+  const hasResults = fetchCompleted;
 
   const anyPeakCuSizing = useMemo(
     () => rows.some((r) => r.ok && r.usedPeakCuConstantSizing),
@@ -321,7 +366,12 @@ export default function BatchLakebaseEstimateModal({
         </Box>
 
         {fetchError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert
+            severity={
+              Object.keys(metricsById).length > 0 ? "warning" : "error"
+            }
+            sx={{ mb: 2 }}
+          >
             {fetchError}
           </Alert>
         )}
@@ -369,7 +419,7 @@ export default function BatchLakebaseEstimateModal({
                   LAKEBASE_ESTIMATE_DEFAULT_SCALE_TO_ZERO;
                 const branchedUi = branchedById[a.analysis_id] ?? false;
                 const row = hasResults
-                  ? rows.find((r) => r.analysisId === a.analysis_id)
+                  ? rowsByAnalysisId.get(a.analysis_id)
                   : undefined;
                 return (
                   <TableRow key={a.analysis_id} hover>
@@ -453,7 +503,27 @@ export default function BatchLakebaseEstimateModal({
                       {row?.ok ? row.monthlyCU.toLocaleString() : "—"}
                     </TableCell>
                     <TableCell align="right">
-                      {row?.ok ? `$${formatUsd(row.computeUsd)}` : "—"}
+                      {row?.ok ? (
+                        <Box>
+                          <Typography variant="body2" component="span">
+                            ${formatUsd(row.computeUsd)}
+                          </Typography>
+                          {row.qualifiesFor100PercentUptimeDiscount && (
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              display="block"
+                            >
+                              100% Uptime Discount applied (
+                              {LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT}% off): $
+                              {formatUsd(lakebaseMonthlyCuCostUsd(row.monthlyCU))}{" "}
+                              → ${formatUsd(row.computeUsd)}
+                            </Typography>
+                          )}
+                        </Box>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
                     <TableCell align="right">
                       {row?.ok ? `$${formatUsd(row.storageUsd)}` : "—"}
