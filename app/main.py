@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from backend.routes import ai_analysis, analyses, metrics, upload
 from backend.tables import ensure_tables
 
-from opentelemetry import metrics
+from opentelemetry import metrics as otel_metrics
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
@@ -21,7 +21,7 @@ from opentelemetry.instrumentation.system_metrics import SystemMetricsInstrument
 exporter = OTLPMetricExporter()
 reader = PeriodicExportingMetricReader(exporter)
 provider = MeterProvider(metric_readers=[reader])
-metrics.set_meter_provider(provider)
+otel_metrics.set_meter_provider(provider)
 
 # 2. Start collecting OS-level metrics (CPU, RAM, etc.)
 SystemMetricsInstrumentor().instrument()
