@@ -8,3 +8,5 @@ env:
     valueFrom: sql-warehouse
   - name: PGDATABASE
     value: lakebase_estimator
+  - name: LAKEBASE_ENDPOINT
+    valueFrom: PG_HOST
