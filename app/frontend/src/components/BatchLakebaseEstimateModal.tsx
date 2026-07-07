@@ -35,7 +35,6 @@ import {
   LAKEBASE_100_PERCENT_UPTIME_DISCOUNT_PCT,
   LAKEBASE_BRANCHED_STORAGE_FRACTION,
   tryComputeLakebaseEstimateFromMetrics,
-  LAKEBASE_CU_USD_PER_UNIT,
   lakebaseMonthlyCuCostUsd,
   lakebaseMonthlyCuCostUsdAfterUptimeDiscount,
   lakebaseStorageMonthlyCostUsd,

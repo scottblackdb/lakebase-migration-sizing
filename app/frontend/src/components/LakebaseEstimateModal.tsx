@@ -25,7 +25,7 @@ import {
   Line,
   XAxis,
   YAxis,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   CartesianGrid,
   Legend,
   ReferenceLine,
@@ -533,7 +533,7 @@ export default function LakebaseEstimateModal({
                   style: { fontSize: 12, fill: "#00A972" },
                 }}
               />
-              <Tooltip
+              <RechartsTooltip
                 contentStyle={{
                   fontFamily: "'DM Sans', sans-serif",
                   fontSize: 13,
