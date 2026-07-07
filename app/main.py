@@ -11,6 +11,22 @@ from fastapi.staticfiles import StaticFiles
 from backend.routes import ai_analysis, analyses, metrics, upload
 from backend.tables import ensure_tables
 
+from opentelemetry import metrics
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.instrumentation.system_metrics import SystemMetricsInstrumentor
+
+# 1. Set up the exporter to read from Databricks-injected OTEL_ environment variables
+exporter = OTLPMetricExporter()
+reader = PeriodicExportingMetricReader(exporter)
+provider = MeterProvider(metric_readers=[reader])
+metrics.set_meter_provider(provider)
+
+# 2. Start collecting OS-level metrics (CPU, RAM, etc.)
+SystemMetricsInstrumentor().instrument()
+
+
 app = FastAPI(title="Lakebase Migration Sizing")
 
 app.include_router(upload.router, prefix="/api")
