@@ -5,19 +5,6 @@ env:
   - name: OTEL_TRACES_SAMPLER
     value: "always_on"
   - name: DATABRICKS_SQL_WAREHOUSE_PATH
-    description: SQL warehouse HTTP path (e.g., /sql/1.0/warehouses/abc123)
-    fromValue: sql-warehouse
-  - name: LAKEBASE_ENDPOINT
-    value: projects/shared/branches/production/endpoints/primary
-    description: Lakebase endpoint resource path (enables OAuth DB auth; auto-set when app declares a database resource)
-  - name: PGHOST
-    description: Lakebase Postgres hostname (auto-set with database resource)
-  - name: PGPORT
-    description: Postgres port (default 5432)
+    valueFrom: sql-warehouse
   - name: PGDATABASE
     value: lakebase_estimator
-    description: Postgres database name
-  - name: PGUSER
-    description: Postgres user (service principal client ID when deployed as a Databricks App)
-  - name: PGSSLMODE
-    description: SSL mode (require for Lakebase)
