@@ -36,6 +36,32 @@ is added to sys.path automatically).
 """
 
 _MAIN_EPILOG = """\
+authentication:
+  No database password is ever used. Each provider authenticates to the cloud
+  control plane with its SDK's standard credential chain -- this tool does not
+  read credentials itself, and never signs or refreshes tokens.
+
+  aws-rds-postgres (boto3.Session, tried in order):
+    1. Environment: AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY /
+       AWS_SESSION_TOKEN.
+    2. Shared config: ~/.aws/credentials and ~/.aws/config -- the "default"
+       profile from `aws configure`, or the profile named by --profile. This
+       also covers SSO profiles and role_arn + source_profile assume-role
+       chains, which boto3 resolves on its own.
+    3. Web identity / IRSA: AWS_WEB_IDENTITY_TOKEN_FILE (e.g. on EKS).
+    4. Container or instance role: ECS task role, then EC2 instance metadata
+       (IMDS).
+    Region comes from --region (default us-east-1) and is passed explicitly,
+    so it overrides AWS_REGION and any profile region.
+    IAM permissions needed: rds:DescribeDBInstances, rds:DescribeDBClusters,
+    cloudwatch:GetMetricStatistics.
+
+  azure-postgres / azure-sql (DefaultAzureCredential):
+    `az login`, managed identity, or environment service principal
+    (AZURE_CLIENT_ID / AZURE_TENANT_ID / AZURE_CLIENT_SECRET), among others.
+    RBAC needed: read on the server/database resource plus Monitoring Reader
+    (or equivalent) for metrics.
+
 how to get help:
   %(prog)s --help                    Show this overview and list providers.
   %(prog)s <PROVIDER> --help         Show all options for that provider
